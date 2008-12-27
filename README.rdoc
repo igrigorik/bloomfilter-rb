@@ -1,0 +1,51 @@
+= BloomFilter
+
+Scalable Bloom Filter implemented in Ruby.
+
+Bloom filter is a space-efficient probabilistic data structure that is used to
+test whether an element is a member of a set. False positives are possible, but
+false negatives are not. For more detail: http://en.wikipedia.org/wiki/Bloom_filter
+
+== Implementation
+
+Instead of using k different hash functions, this implementation seeds the CRC32 hash
+with k different initial values (0, 1, ..., k-1). This may or may not give you a good
+distribution, it all depends on the data.
+
+== Example
+
+  require 'bloomfilter'
+
+  # M (size of bit array)
+  # K (number of hash functions)
+  # R (random seed) 100000000, k=4, random seed=1
+
+  #                    M,  K, R
+  bf = BloomFilter.new(10, 2, 1)
+  bf.insert("test")
+  bf.include?("test")
+  => true
+  bf.include?("test2")
+  => false
+  bf.insert("test2")
+  bf.include?("test2")
+  => true
+  bf.stats
+  Number of filter bits (m): 10
+  Number of filter elements (n): 2
+  Number of filter hashes (k) : 2
+  Predicted false positive rate = 10.87%
+
+
+== Configuring Bloom Filter
+
+Performance of the Bloom filter depends on a number of variables:
+ - size of the bit array
+ - number of hash functions
+
+To figure out the values for these parameters, refer to:
+http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
+
+== Credits
+ Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
+ Ilya Grigorik <ilya@igvita.com> (Fix, cleanup, update)
