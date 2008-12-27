@@ -40,12 +40,12 @@ distribution, it all depends on the data.
 == Configuring Bloom Filter
 
 Performance of the Bloom filter depends on a number of variables:
- - size of the bit array
- - number of hash functions
+- size of the bit array
+- number of hash functions
 
 To figure out the values for these parameters, refer to:
 http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
 
 == Credits
- Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
- Ilya Grigorik <ilya@igvita.com> (Fix, cleanup, update)
+Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
+Ilya Grigorik <ilya@igvita.com> (Fix, cleanup, update)
