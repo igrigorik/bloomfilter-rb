@@ -8,4 +8,22 @@ class BloomFilter
     printf "Number of filter hashes (k) : %d\n" % self.k
     printf "Predicted false positive rate = %.2f%\n" % fp
   end
+
+  def []= key, value
+    insert(key)
+    @hash_value[key] = value
+  end
+
+  def [] key
+    return nil unless include?(key)
+    @hash_value[key]
+  end
+
+  def key? key
+    include?(key)
+  end
+
+  def keys
+    @hash_value.keys
+  end
 end

@@ -91,6 +91,7 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
 
     /* initialize the bits with zeros */
     memset(bf->ptr, 0, bytes);
+    rb_iv_set(obj, "@hash_value", rb_hash_new());
 
     return obj;
 }
