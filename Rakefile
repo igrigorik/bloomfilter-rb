@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/clean'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
+require 'rake/testtask'
 require 'fileutils'
 include FileUtils
 
@@ -50,3 +51,14 @@ task :compile => [:sbloomfilter]
 
 CLEAN.include ['build/*', '**/*.o', '**/*.so', '**/*.a', '**/*.log', 'pkg']
 CLEAN.include ['ext/Makefile']
+
+Rake::TestTask.new do |t|
+  %w[ ext lib test ].each do |dir|
+    t.libs << dir
+  end
+
+  t.test_files = FileList['test/test_*.rb']
+  t.verbose = true
+end
+Rake::Task[:test].prerequisites << :compile
+
