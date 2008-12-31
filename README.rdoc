@@ -27,9 +27,14 @@ distribution, it all depends on the data.
   => true
   bf.include?("test2")
   => false
-  bf.insert("test2")
-  bf.include?("test2")
-  => true
+
+  # Hash with a bloom filter!
+  bf["test2"] = "bar"
+  bf["test2"]
+  => "bar"
+  bf["test3"]
+  => nil
+
   bf.stats
   Number of filter bits (m): 10
   Number of filter elements (n): 2
@@ -44,8 +49,7 @@ Performance of the Bloom filter depends on a number of variables:
 - number of hash functions
 
 To figure out the values for these parameters, refer to:
-http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
+ http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
 
 == Credits
-Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
-Ilya Grigorik <ilya@igvita.com> (Fix, cleanup, update)
+ Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
