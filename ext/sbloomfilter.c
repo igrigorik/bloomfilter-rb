@@ -9,9 +9,11 @@
 static VALUE cBloomFilter;
 
 struct BloomFilter {
-    int m; /* # of bits in a bloom filter */
+    int m; /* # of buckets in a bloom filter */
+    int b; /* # of bits in a bloom filter bucket */
     int k; /* # of hash functions */
-    int s; /* seed of hash functions */
+    int s; /* # seed of hash functions */
+    int r; /* # raise on bucket overflow? */
     int num_set; /* # of set bits */
     unsigned char *ptr; /* bits data */
 };
@@ -20,60 +22,110 @@ void bits_free(struct BloomFilter *bf) {
     ruby_xfree(bf->ptr);
 }
 
-void bit_set(struct BloomFilter *bf, int index) {
-    int byte_offset = index / 8;
-    int bit_offset = index % 8;
-    unsigned char c = bf->ptr[byte_offset];
 
-    c |= (1 << bit_offset);
-    bf->ptr[byte_offset] = c;
+void bucket_unset(struct BloomFilter *bf, int index) {
+    int byte_offset = (index * bf->b) / 8;
+    int bit_offset = (index * bf->b) % 8;
+    unsigned int c = bf->ptr[byte_offset];
+    c += bf->ptr[byte_offset + 1] << 8;
+    unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
+    if ((c & mask) == 0) {
+      // do nothing
+    } else {
+        bf->ptr[byte_offset] -= (1 << bit_offset) & ((1 << 8) - 1);
+        bf->ptr[byte_offset + 1] -= ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
+    }
+    
 }
 
-int bit_check(struct BloomFilter *bf, int index) {
-    int byte_offset = index / 8;
-    int bit_offset = index % 8;
-    unsigned char c = bf->ptr[byte_offset];
-
-    return c & (1 << bit_offset);
+void bucket_set(struct BloomFilter *bf, int index) {
+    int byte_offset = (index * bf->b) / 8;
+    int bit_offset = (index * bf->b) % 8;
+    unsigned int c = bf->ptr[byte_offset];
+    c += bf->ptr[byte_offset + 1] << 8;
+    unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
+    if ((c & mask) == mask) {
+        if (bf->r == 1) rb_raise(rb_eArgError, "bucket size");
+    } else {
+        bf->ptr[byte_offset] += (1 << bit_offset) & ((1 << 8) - 1);
+        bf->ptr[byte_offset + 1] += ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
+    }
+    
 }
 
-int bit_get(struct BloomFilter *bf, int index) {
-    int byte_offset = index / 8;
-    int bit_offset = index % 8;
-    unsigned char c = bf->ptr[byte_offset];
+int bucket_check(struct BloomFilter *bf, int index) {
+    int byte_offset = (index * bf->b) / 8;
+    int bit_offset = (index * bf->b) % 8;
+    unsigned int c = bf->ptr[byte_offset];
+    c += bf->ptr[byte_offset + 1] << 8;
 
-    return (c & (1 << bit_offset)) ? 1 : 0;
+    unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
+    return (c & mask) >> bit_offset;
+}
+
+int bucket_get(struct BloomFilter *bf, int index) {
+  int byte_offset = (index * bf->b) / 8;
+  int bit_offset = (index * bf->b) % 8;
+  unsigned int c = bf->ptr[byte_offset];
+  c += bf->ptr[byte_offset + 1] << 8;
+
+  unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
+  return (c & mask) >> bit_offset;
 }
 
 static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     struct BloomFilter *bf;
-    VALUE arg1, arg2, arg3, obj;
-    int m, k, s, bytes;
+    VALUE arg1, arg2, arg3, arg4, arg5, obj;
+    int m, k, s, b, r, bytes;
 
     obj = Data_Make_Struct(self, struct BloomFilter, NULL, bits_free, bf);
 
-    if (argc == 3) {
+    if (argc == 5) {
         arg1 = argv[0];
         arg2 = argv[1];
         arg3 = argv[2];
+        arg4 = argv[3];
+        arg5 = argv[4];
+    } else if (argc == 4) {
+        arg1 = argv[0];
+        arg2 = argv[1];
+        arg3 = argv[2];
+        arg4 = argv[3];
+        arg5 = 0;
+    } else if (argc == 3) {
+        arg1 = argv[0];
+        arg2 = argv[1];
+        arg3 = argv[2];
+        arg4 = INT2FIX(1);
+        arg5 = 0;
     } else if (argc == 2) {
         arg1 = argv[0];
         arg2 = argv[1];
         arg3 = INT2FIX(0);
+        arg4 = INT2FIX(1);
+        arg5 = 0;
     } else if (argc == 1) {
         arg1 = argv[0];
         arg2 = INT2FIX(4);
         arg3 = INT2FIX(0);
+        arg4 = INT2FIX(1);
+        arg5 = 0;
     } else { /* default = Fugou approach :-) */
         arg1 = INT2FIX(100000000);
         arg2 = INT2FIX(4);
         arg3 = INT2FIX(0);
+        arg4 = INT2FIX(1);
+        arg5 = 0;
     }
 
     m = FIX2INT(arg1);
     k = FIX2INT(arg2);
     s = FIX2INT(arg3);
+    b = FIX2INT(arg4);
+    r = FIX2INT(arg5);
 
+    if (b < 1)
+        rb_raise(rb_eArgError, "bucket size");
     if (m < 1)
         rb_raise(rb_eArgError, "array size");
     if (k < 1)
@@ -81,12 +133,14 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     if (s < 0)
         rb_raise(rb_eArgError, "random seed");
 
+    bf->b = b;
     bf->m = m;
     bf->k = k;
     bf->s = s;
+    bf->r = r;
     bf->num_set = 0;
 
-    bytes = (m + 7) / 8;
+    bytes = ((m * b) + 15) / 8;
     bf->ptr = ALLOC_N(unsigned char, bytes);
 
     /* initialize the bits with zeros */
@@ -106,6 +160,18 @@ static VALUE bf_k(VALUE self) {
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
     return INT2FIX(bf->k);
+}
+
+static VALUE bf_b(VALUE self) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    return INT2FIX(bf->b);
+}
+
+static VALUE bf_r(VALUE self) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    return bf->r == 0 ? Qfalse : Qtrue;
 }
 
 static VALUE bf_num_set(VALUE self) {
@@ -138,12 +204,44 @@ static VALUE bf_insert(VALUE self, VALUE key) {
         index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
 
         /*  set a bit at the index */
-        bit_set(bf, index);
+        bucket_set(bf, index);
     }
 
     bf->num_set += 1;
     return Qnil;
 }
+
+static VALUE bf_delete(VALUE self, VALUE key) {
+    int index, seed;
+    int i, len, m, k, s;
+    char *ckey;
+
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+
+    Check_Type(key, T_STRING);
+    ckey = STR2CSTR(key);
+    len = (int) (RSTRING(key)->len); /* length of the string in bytes */
+
+    m = bf->m;
+    k = bf->k;
+    s = bf->s;
+
+    for (i = 0; i <= k - 1; i++) {
+        /* seeds for hash functions */
+        seed = i + s;
+
+        /* hash */
+        index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
+
+        /*  set a bit at the index */
+        bucket_unset(bf, index);
+    }
+
+    bf->num_set += 1;
+    return Qnil;
+}
+
 
 static VALUE bf_include(VALUE self, VALUE key) {
     int index, seed;
@@ -169,7 +267,7 @@ static VALUE bf_include(VALUE self, VALUE key) {
         index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
 
         /* check the bit at the index */
-        if (!bit_check(bf, index))
+        if (!bucket_check(bf, index))
             return Qfalse; /* i.e., it is a new entry ; escape the loop */
     }
 
@@ -187,7 +285,7 @@ static VALUE bf_to_s(VALUE self) {
 
     ptr = (unsigned char *) RSTRING(str)->ptr;
     for (i = 0; i < bf->m; i++)
-        *ptr++ = bit_get(bf, i) ? '1' : '0';
+        *ptr++ = bucket_get(bf, i) ? '1' : '0';
 
     return str;
 }
@@ -197,8 +295,11 @@ void Init_sbloomfilter(void) {
     rb_define_singleton_method(cBloomFilter, "new", bf_s_new, -1);
     rb_define_method(cBloomFilter, "m", bf_m, 0);
     rb_define_method(cBloomFilter, "k", bf_k, 0);
+    rb_define_method(cBloomFilter, "b", bf_b, 0);
+    rb_define_method(cBloomFilter, "r", bf_r, 0);
     rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
     rb_define_method(cBloomFilter, "insert", bf_insert, 1);
+    rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, 1);
     rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
 
