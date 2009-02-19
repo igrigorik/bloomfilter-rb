@@ -45,7 +45,7 @@ void bucket_set(struct BloomFilter *bf, int index) {
     c += bf->ptr[byte_offset + 1] << 8;
     unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
     if ((c & mask) == mask) {
-        if (bf->r == 1) rb_raise(rb_eArgError, "bucket size");
+        if (bf->r == 1) rb_raise(rb_eRuntimeError, "bucket got filled up");
     } else {
         bf->ptr[byte_offset] += (1 << bit_offset) & ((1 << 8) - 1);
         bf->ptr[byte_offset + 1] += ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
@@ -124,7 +124,7 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     b = FIX2INT(arg4);
     r = FIX2INT(arg5);
 
-    if (b < 1)
+    if (b < 1 || b > 8)
         rb_raise(rb_eArgError, "bucket size");
     if (m < 1)
         rb_raise(rb_eArgError, "array size");
