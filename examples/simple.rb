@@ -18,7 +18,9 @@ bf.stats
 #  moose: false
 #  racooon: false
 #
-#  Number of filter bits (m): 100
+#  Number of filter buckets (m): 100
+#  Number of bits per buckets (b): 1
 #  Number of filter elements (n): 4
 #  Number of filter hashes (k) : 4
+#  Raise on overflow? (r) : false
 #  Predicted false positive rate = 0.05%

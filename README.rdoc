@@ -52,4 +52,4 @@ To figure out the values for these parameters, refer to:
  http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
 
 == Credits
- Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
+Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
