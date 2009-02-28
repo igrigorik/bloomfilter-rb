@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name = 'bloomfilter'
-  s.version = '0.1'
+  s.version = '0.1.1'
   s.date = '2009-02-21'
   s.summary = 'Counting Bloom Filter in Ruby'
   s.description = s.summary
@@ -9,6 +9,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.authors = ["Ilya Grigorik", "Tatsuya Mori"]
   s.extensions = ["ext/extconf.rb"]
+  s.rubyforge_project = "bloomfilter"
  
   # ruby -rpp -e' pp `git ls-files`.split("\n") '
   s.files = [
