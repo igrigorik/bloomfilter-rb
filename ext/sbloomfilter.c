@@ -87,29 +87,20 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     arg4 = INT2FIX(1);
     arg5 = INT2FIX(0);
 
-    if (argc == 5) {
-        arg1 = argv[0];
-        arg2 = argv[1];
-        arg3 = argv[2];
-        arg4 = argv[3];
-
-	if (argv[4] == Qtrue) {
-	    arg5 = INT2FIX(1);
-	}
-    } else if (argc == 4) {
-        arg1 = argv[0];
-        arg2 = argv[1];
-        arg3 = argv[2];
-        arg4 = argv[3];
-    } else if (argc == 3) {
-        arg1 = argv[0];
-        arg2 = argv[1];
-        arg3 = argv[2];
-    } else if (argc == 2) {
-        arg1 = argv[0];
-        arg2 = argv[1];
-    } else if (argc == 1) {
-        arg1 = argv[0];
+    switch (argc) {
+        case 5:
+	    if (argv[4] == Qtrue) {
+		    arg5 = INT2FIX(1);
+	    }
+        case 4:
+	    arg4 = argv[3];
+        case 3:
+	    arg3 = argv[2];
+        case 2:
+	    arg2 = argv[1];
+        case 1:
+	    arg1 = argv[0];
+	    break;
     }
 
     m = FIX2INT(arg1);
