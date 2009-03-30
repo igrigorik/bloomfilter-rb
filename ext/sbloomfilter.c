@@ -93,7 +93,7 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
         arg3 = argv[2];
         arg4 = argv[3];
 
-	if (TYPE(argv[4]) == T_TRUE) {
+	if (argv[4] == Qtrue) {
 	    arg5 = INT2FIX(1);
 	}
     } else if (argc == 4) {
