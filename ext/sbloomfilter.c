@@ -80,6 +80,13 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
 
     obj = Data_Make_Struct(self, struct BloomFilter, NULL, bits_free, bf);
 
+    /* default = Fugou approach :-) */
+    arg1 = INT2FIX(100000000);
+    arg2 = INT2FIX(4);
+    arg3 = INT2FIX(0);
+    arg4 = INT2FIX(1);
+    arg5 = INT2FIX(0);
+
     if (argc == 5) {
         arg1 = argv[0];
         arg2 = argv[1];
@@ -88,39 +95,21 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
 
 	if (TYPE(argv[4]) == T_TRUE) {
 	    arg5 = INT2FIX(1);
-	} else {
-	    arg5 = INT2FIX(0);
 	}
     } else if (argc == 4) {
         arg1 = argv[0];
         arg2 = argv[1];
         arg3 = argv[2];
         arg4 = argv[3];
-        arg5 = INT2FIX(0);
     } else if (argc == 3) {
         arg1 = argv[0];
         arg2 = argv[1];
         arg3 = argv[2];
-        arg4 = INT2FIX(1);
-        arg5 = INT2FIX(0);
     } else if (argc == 2) {
         arg1 = argv[0];
         arg2 = argv[1];
-        arg3 = INT2FIX(0);
-        arg4 = INT2FIX(1);
-        arg5 = INT2FIX(0);
     } else if (argc == 1) {
         arg1 = argv[0];
-        arg2 = INT2FIX(4);
-        arg3 = INT2FIX(0);
-        arg4 = INT2FIX(1);
-        arg5 = INT2FIX(0);
-    } else { /* default = Fugou approach :-) */
-        arg1 = INT2FIX(100000000);
-        arg2 = INT2FIX(4);
-        arg3 = INT2FIX(0);
-        arg4 = INT2FIX(1);
-        arg5 = INT2FIX(0);
     }
 
     m = FIX2INT(arg1);
