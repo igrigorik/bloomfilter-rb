@@ -228,35 +228,43 @@ static VALUE bf_delete(VALUE self, VALUE key) {
 }
 
 
-static VALUE bf_include(VALUE self, VALUE key) {
+static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     int index, seed;
-    int i, len, m, k, s;
+    int i, len, m, k, s, tests_idx, vlen;
     char *ckey;
-
+    VALUE tests, key;
     struct BloomFilter *bf;
+
+    rb_scan_args(argc, argv, "*", &tests);
+    
     Data_Get_Struct(self, struct BloomFilter, bf);
+    vlen = RARRAY(tests)->len;
+    for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
+      key = rb_ary_entry(tests, tests_idx);
+      Check_Type(key, T_STRING);
+      ckey = STR2CSTR(key);
+      len = (int) (RSTRING(key)->len); /* length of the string in bytes */
 
-    Check_Type(key, T_STRING);
-    ckey = STR2CSTR(key);
-    len = (int) (RSTRING(key)->len); /* length of the string in bytes */
+      m = bf->m;
+      k = bf->k;
+      s = bf->s;
 
-    m = bf->m;
-    k = bf->k;
-    s = bf->s;
+      for (i = 0; i <= k - 1; i++) {
+          /* seeds for hash functions */
+          seed = i + s;
 
-    for (i = 0; i <= k - 1; i++) {
-        /* seeds for hash functions */
-        seed = i + s;
+          /* hash */
+          index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
 
-        /* hash */
-        index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
+          /* check the bit at the index */
+          if (!bucket_check(bf, index)) {
+              return Qfalse; /* i.e., it is a new entry ; escape the loop */
+          }
+      }
 
-        /* check the bit at the index */
-        if (!bucket_check(bf, index))
-            return Qfalse; /* i.e., it is a new entry ; escape the loop */
+      return Qtrue;
     }
-
-    return Qtrue;
+    
 }
 
 static VALUE bf_to_s(VALUE self) {
@@ -285,7 +293,7 @@ void Init_sbloomfilter(void) {
     rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
     rb_define_method(cBloomFilter, "insert", bf_insert, 1);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
-    rb_define_method(cBloomFilter, "include?", bf_include, 1);
+    rb_define_method(cBloomFilter, "include?", bf_include, -1);
     rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
 
     /* functions that have not been implemented, yet */

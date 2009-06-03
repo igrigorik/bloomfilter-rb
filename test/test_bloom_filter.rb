@@ -4,12 +4,13 @@ class TestBloomFilter < Test::Unit::TestCase
   def test_include?
     bf = BloomFilter.new(10, 2, 1, 1, false)
     bf.insert("test")
-    bf.insert("test")
-    bf.insert("test")
-    bf.insert("test")
-    bf.insert("test")
+    bf.insert("test1")
+    bf.insert("test2")
+    bf.insert("test3")
+    bf.insert("test4")
     assert bf.include?("test")
-    assert !bf.include?("lkajdsfhlkajsdfhlakjsdfhalsjdkfh")
+    assert bf.include?("test2", "test3")
+    assert !bf.include?("qweasd")
   end
 
   def test_hash_key_insert
