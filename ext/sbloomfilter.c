@@ -166,16 +166,16 @@ static VALUE bf_num_set(VALUE self) {
 }
 
 static VALUE bf_insert(VALUE self, VALUE key) {
+    VALUE skey;
     int index, seed;
     int i, len, m, k, s;
     char *ckey;
-
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
 
-    Check_Type(key, T_STRING);
-    ckey = STR2CSTR(key);
-    len = (int) (RSTRING(key)->len); /* length of the string in bytes */
+    skey = rb_obj_as_string(key);
+    ckey = STR2CSTR(skey);
+    len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -200,13 +200,13 @@ static VALUE bf_delete(VALUE self, VALUE key) {
     int index, seed;
     int i, len, m, k, s;
     char *ckey;
-
+    VALUE skey;
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
 
-    Check_Type(key, T_STRING);
-    ckey = STR2CSTR(key);
-    len = (int) (RSTRING(key)->len); /* length of the string in bytes */
+    skey = rb_obj_as_string(key);
+    ckey = STR2CSTR(skey);
+    len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -232,7 +232,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     int index, seed;
     int i, len, m, k, s, tests_idx, vlen;
     char *ckey;
-    VALUE tests, key;
+    VALUE tests, key, skey;
     struct BloomFilter *bf;
 
     rb_scan_args(argc, argv, "*", &tests);
@@ -241,9 +241,9 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     vlen = RARRAY(tests)->len;
     for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
       key = rb_ary_entry(tests, tests_idx);
-      Check_Type(key, T_STRING);
-      ckey = STR2CSTR(key);
-      len = (int) (RSTRING(key)->len); /* length of the string in bytes */
+      skey = rb_obj_as_string(key);
+      ckey = STR2CSTR(skey);
+      len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
 
       m = bf->m;
       k = bf->k;
