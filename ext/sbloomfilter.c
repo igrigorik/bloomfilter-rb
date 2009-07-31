@@ -6,6 +6,11 @@
 #include "ruby.h"
 #include "crc32.h"
 
+#if !defined(RSTRING_LEN)
+# define RSTRING_LEN(x) (RSTRING(x)->len)
+# define RSTRING_PTR(x) (RSTRING(x)->ptr)
+#endif
+
 static VALUE cBloomFilter;
 
 struct BloomFilter {
@@ -175,7 +180,7 @@ static VALUE bf_insert(VALUE self, VALUE key) {
 
     skey = rb_obj_as_string(key);
     ckey = STR2CSTR(skey);
-    len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
+    len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -206,7 +211,7 @@ static VALUE bf_delete(VALUE self, VALUE key) {
 
     skey = rb_obj_as_string(key);
     ckey = STR2CSTR(skey);
-    len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
+    len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -238,12 +243,12 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     rb_scan_args(argc, argv, "*", &tests);
     
     Data_Get_Struct(self, struct BloomFilter, bf);
-    vlen = RARRAY(tests)->len;
+    vlen = RARRAY_LEN(tests);
     for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
       key = rb_ary_entry(tests, tests_idx);
       skey = rb_obj_as_string(key);
       ckey = STR2CSTR(skey);
-      len = (int) (RSTRING(skey)->len); /* length of the string in bytes */
+      len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
       m = bf->m;
       k = bf->k;
@@ -276,7 +281,7 @@ static VALUE bf_to_s(VALUE self) {
     Data_Get_Struct(self, struct BloomFilter, bf);
     str = rb_str_new(0, bf->m);
 
-    ptr = (unsigned char *) RSTRING(str)->ptr;
+    ptr = (unsigned char *) RSTRING_PTR(str);
     for (i = 0; i < bf->m; i++)
         *ptr++ = bucket_get(bf, i) ? '1' : '0';
 
