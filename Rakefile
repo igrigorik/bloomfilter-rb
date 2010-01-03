@@ -1,64 +1,20 @@
 require 'rake'
-require 'rake/clean'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'rake/testtask'
-require 'fileutils'
-include FileUtils
 
-# Default Rake task is compile
-task :default => :compile
-
-def make(makedir)
-  Dir.chdir(makedir) { sh 'make' }
-end
-
-def extconf(dir)
-  Dir.chdir(dir) { ruby "extconf.rb" }
-end
-
-def setup_extension(dir, extension)
-  ext = "ext/#{dir}"
-  ext_so = "#{ext}/#{extension}.#{Config::CONFIG['DLEXT']}"
-  ext_files = FileList[
-    "#{ext}/*.c",
-    "#{ext}/*.h",
-    "#{ext}/extconf.rb",
-    "#{ext}/Makefile",
-    "lib"
-  ]
-
-  task "lib" do
-    directory "lib"
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "bloomfilter"
+    gemspec.summary = "Counting Bloom Filter implemented in Ruby"
+    gemspec.description = gemspec.summary
+    gemspec.email = "ilya@igvita.com"
+    gemspec.homepage = "http://github.com/igrigorik/bloomfilter"
+    gemspec.authors = ["Ilya Grigorik", "Tatsuya Mori"]
+    gemspec.extensions = ["ext/extconf.rb"]
+    gemspec.rubyforge_project = "bloomfilter"
+    gemspec.files = FileList[`git ls-files`.split]
   end
 
-  desc "Builds just the #{extension} extension"
-  task extension.to_sym => ["#{ext}/Makefile", ext_so ]
-
-  file "#{ext}/Makefile" => ["#{ext}/extconf.rb"] do
-    extconf "#{ext}"
-  end
-
-  file ext_so => ext_files do
-    make "#{ext}"
-    cp ext_so, "lib"
-  end
+  Jeweler::GemcutterTasks.new
+rescue LoadError
+  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
-
-setup_extension("", "sbloomfilter")
-
-task :compile => [:sbloomfilter]
-
-CLEAN.include ['build/*', '**/*.o', '**/*.so', '**/*.a', '**/*.log', 'pkg']
-CLEAN.include ['ext/Makefile']
-
-Rake::TestTask.new do |t|
-  %w[ ext lib test ].each do |dir|
-    t.libs << dir
-  end
-
-  t.test_files = FileList['test/test_*.rb']
-  t.verbose = true
-end
-Rake::Task[:test].prerequisites << :compile
-

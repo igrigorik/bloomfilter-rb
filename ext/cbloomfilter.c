@@ -1,5 +1,5 @@
 /*
- *   sbloomfilter.c - simple Bloom Filter
+ *   cbloomfilter.c - simple Bloom Filter
  *   (c) Tatsuya Mori <valdzone@gmail.com>
  */
 
@@ -288,8 +288,8 @@ static VALUE bf_to_s(VALUE self) {
     return str;
 }
 
-void Init_sbloomfilter(void) {
-    cBloomFilter = rb_define_class("BloomFilter", rb_cObject);
+void Init_cbloomfilter(void) {
+    cBloomFilter = rb_define_class("CBloomFilter", rb_cObject);
     rb_define_singleton_method(cBloomFilter, "new", bf_s_new, -1);
     rb_define_method(cBloomFilter, "m", bf_m, 0);
     rb_define_method(cBloomFilter, "k", bf_k, 0);

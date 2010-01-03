@@ -1,31 +1,68 @@
-require 'sbloomfilter'
+require 'cbloomfilter'
 
 class BloomFilter
-  def stats
-    fp = ((1.0 - Math.exp(-(self.k * self.num_set).to_f / self.m)) ** self.k) * 100
-    printf "Number of filter buckets (m): %d\n" % self.m
-    printf "Number of bits per buckets (b): %d\n" % self.b
-    printf "Number of filter elements (n): %d\n" % self.num_set
-    printf "Number of filter hashes (k) : %d\n" % self.k
-    printf "Raise on overflow? (r) : %s\n" % self.r.to_s
-    printf "Predicted false positive rate = %.2f%\n" % fp
+  def initialize(opts = {})
+    @opts = {
+      :size    => 100,
+      :hashes  => 4,
+      :seed    => Time.now.to_i,
+      :bucket  => 3,
+      :raise   => false,
+      :type    => :c,
+      :values  => false
+    }.merge(opts)
+
+    @values = {}
+    @bf = case @opts[:type]
+      # arg 1: m => size : number of buckets in a bloom filter
+      # arg 2: k => hashes : number of hash functions
+      # arg 3: s => seed : seed of hash functions
+      # arg 4: b => bucket : number of bits in a bloom filter bucket
+      # arg 5: r => rasie : raise on bucket overflow?
+    when :c then CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
+    else
+      raise "invalid type"
+    end
   end
 
-  def []= key, value
-    insert(key)
-    @hash_value[key] = value
+  def insert(key, value=nil)
+    @bf.insert(key)
+    @values[key] = value if @opts[:values]
   end
+  alias :[]= :insert
 
-  def [] key
-    return nil unless include?(key)
-    @hash_value[key]
+  def include?(*keys)
+    if @opts[:values]
+      keys.collect do |key|
+        @values[key] if @bf.include?(key)
+      end.compact
+    else
+      @bf.include?(*keys)
+    end
   end
+  alias :key? :include?
 
-  def key? key
-    include?(key)
+  def [](key)
+    return nil if not (@opts[:values] and include?(key))
+    @values[key]
   end
 
   def keys
-    @hash_value.keys
+    return nil if not @opts[:values]
+    @values.keys
+  end
+
+  def delete(key)
+    @bf.delete(key)
+  end
+
+  def stats
+    fp = ((1.0 - Math.exp(-(@opts[:hashes] * @bf.num_set).to_f / @opts[:size])) ** @opts[:hashes]) * 100
+    printf "Number of filter buckets (m): %d\n" % @opts[:size]
+    printf "Number of bits per buckets (b): %d\n" % @opts[:bucket]
+    printf "Number of filter elements (n): %d\n" % self.num_set
+    printf "Number of filter hashes (k) : %d\n" % @opts[:hashes]
+    printf "Raise on overflow? (r) : %s\n" % @opts[:raise].to_s
+    printf "Predicted false positive rate = %.2f%\n" % fp
   end
 end
