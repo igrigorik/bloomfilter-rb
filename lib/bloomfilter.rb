@@ -1,3 +1,6 @@
+require 'rubygems'
+
+require 'redisbloom'
 require 'cbloomfilter'
 
 class BloomFilter
@@ -20,13 +23,14 @@ class BloomFilter
       # arg 4: b => bucket : number of bits in a bloom filter bucket
       # arg 5: r => rasie : raise on bucket overflow?
     when :c then CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
+    when :redis then RedisBloom.new(@opts)
     else
       raise "invalid type"
     end
   end
 
-  def insert(key, value=nil)
-    @bf.insert(key)
+  def insert(key, value=nil, ttl=nil)
+    @bf.insert(key, ttl)
     @values[key] = value if @opts[:values]
   end
   alias :[]= :insert
@@ -52,15 +56,15 @@ class BloomFilter
     @values.keys
   end
 
-  def delete(key)
-    @bf.delete(key)
-  end
+  def delete(key); @bf.delete(key); end
+  def clear; @bf.clear; end
+  def size; @bf.num_set; end
 
   def stats
-    fp = ((1.0 - Math.exp(-(@opts[:hashes] * @bf.num_set).to_f / @opts[:size])) ** @opts[:hashes]) * 100
+    fp = ((1.0 - Math.exp(-(@opts[:hashes] * size).to_f / @opts[:size])) ** @opts[:hashes]) * 100
     printf "Number of filter buckets (m): %d\n" % @opts[:size]
     printf "Number of bits per buckets (b): %d\n" % @opts[:bucket]
-    printf "Number of filter elements (n): %d\n" % self.num_set
+    printf "Number of filter elements (n): %d\n" % size
     printf "Number of filter hashes (k) : %d\n" % @opts[:hashes]
     printf "Raise on overflow? (r) : %s\n" % @opts[:raise].to_s
     printf "Predicted false positive rate = %.2f%\n" % fp
