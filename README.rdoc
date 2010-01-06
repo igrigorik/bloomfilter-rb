@@ -6,6 +6,17 @@ Bloom filter is a space-efficient probabilistic data structure that is used to
 test whether an element is a member of a set. False positives are possible, but
 false negatives are not. For more detail: http://en.wikipedia.org/wiki/Bloom_filter
 
+Performance of the Bloom filter depends on a number of variables:
+- size of the bit array
+- size of the counter bucket
+- number of hash functions
+
+To figure out the values for these parameters, refer to:
+- http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
+
+To learn about applications and reasons for the time based bloom filters, refer to:
+- http://www.igvita.com/2010/01/06/flow-analysis-time-based-bloom-filters/
+
 == Implementation
 
 Instead of using k different hash functions, this implementation seeds the CRC32 hash
@@ -51,17 +62,5 @@ distribution, it all depends on the data.
   bf.include?('test')
   => false
 
-== Configuring Bloom Filter
-
-Performance of the Bloom filter depends on a number of variables:
-- size of the bit array
-- number of hash functions
-
-To figure out the values for these parameters, refer to:
-- http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
-
-To learn about applications and reasons for time based bloom filters, refer to:
-- http://www.igvita.com/2010/01/06/data-streams-time-based-bloom-filters/
-
 == Credits
-Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
+Tatsuya Mori <valdzone@gmail.com> (Original C implementation: http://vald.x0.com/sb/)
