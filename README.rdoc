@@ -16,12 +16,7 @@ distribution, it all depends on the data.
 
   require 'bloomfilter'
 
-  # M (size of bit array)
-  # K (number of hash functions)
-  # R (random seed) 100000000, k=4, random seed=1
-
-  #                    M,  K, R
-  bf = BloomFilter.new(10, 2, 1)
+  bf = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
   bf.insert("test")
   bf.include?("test")
   => true
@@ -44,6 +39,17 @@ distribution, it all depends on the data.
   Number of filter hashes (k) : 2
   Predicted false positive rate = 10.87%
 
+== Redis-backed counting Bloom Filter with TTL's
+
+  bf = BloomFilter.new(:type => :redis, :ttl => 2, :server => {:host => 'localhost'})
+  
+  bf.insert('test')
+  bf.include?('test')
+  => true
+
+  sleep(2)
+  bf.include?('test')
+  => false
 
 == Configuring Bloom Filter
 
@@ -52,7 +58,10 @@ Performance of the Bloom filter depends on a number of variables:
 - number of hash functions
 
 To figure out the values for these parameters, refer to:
- http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
+- http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/
+
+To learn about applications and reasons for time based bloom filters, refer to:
+- http://www.igvita.com/2010/01/06/data-streams-time-based-bloom-filters/
 
 == Credits
 Tatsuya Mori <valdzone@gmail.com> (Original: http://vald.x0.com/sb/)
