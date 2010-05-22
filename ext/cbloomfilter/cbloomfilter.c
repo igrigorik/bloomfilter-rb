@@ -28,7 +28,6 @@ void bits_free(struct BloomFilter *bf) {
     ruby_xfree(bf->ptr);
 }
 
-
 void bucket_unset(struct BloomFilter *bf, int index) {
     int byte_offset = (index * bf->b) / 8;
     int bit_offset = (index * bf->b) % 8;
@@ -56,7 +55,6 @@ void bucket_set(struct BloomFilter *bf, int index) {
         bf->ptr[byte_offset] += (1 << bit_offset) & ((1 << 8) - 1);
         bf->ptr[byte_offset + 1] += ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
     }
-    
 }
 
 int bucket_check(struct BloomFilter *bf, int index) {
@@ -70,13 +68,13 @@ int bucket_check(struct BloomFilter *bf, int index) {
 }
 
 int bucket_get(struct BloomFilter *bf, int index) {
-  int byte_offset = (index * bf->b) / 8;
-  int bit_offset = (index * bf->b) % 8;
-  unsigned int c = bf->ptr[byte_offset];
-  c += bf->ptr[byte_offset + 1] << 8;
-
-  unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
-  return (c & mask) >> bit_offset;
+    int byte_offset = (index * bf->b) / 8;
+    int bit_offset = (index * bf->b) % 8;
+    unsigned int c = bf->ptr[byte_offset];
+    c += bf->ptr[byte_offset + 1] << 8;
+   
+    unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
+    return (c & mask) >> bit_offset;
 }
 
 static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
@@ -145,6 +143,7 @@ static VALUE bf_clear(VALUE self) {
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
     memset(bf->ptr, 0, bf->bytes);
+    return Qtrue;
 }
 
 static VALUE bf_m(VALUE self) {
@@ -205,6 +204,17 @@ static VALUE bf_insert(VALUE self, VALUE key, VALUE ttl) {
     }
 
     bf->num_set += 1;
+    return Qnil;
+}
+
+static VALUE bf_merge(VALUE self, VALUE other) {
+    struct BloomFilter *bf, *target;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    Data_Get_Struct(other, struct BloomFilter, target);
+    int i;
+    for (i = 0; i < bf->bytes; i++) {
+        bf->ptr[i] |= target->ptr[i];
+    }
     return Qnil;
 }
 
@@ -308,6 +318,7 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
     rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
     rb_define_method(cBloomFilter, "clear", bf_clear, 0);
+    rb_define_method(cBloomFilter, "merge!", bf_merge, 1);
 
     /* functions that have not been implemented, yet */
 
