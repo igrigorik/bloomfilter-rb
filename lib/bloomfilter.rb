@@ -1,9 +1,10 @@
-require 'rubygems'
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__))
 
 require 'redisbloom'
 require 'cbloomfilter'
 
 class BloomFilter
+  
   def initialize(opts = {})
     @opts = {
       :size    => 100,

@@ -21,6 +21,7 @@ struct BloomFilter {
     int r; /* # raise on bucket overflow? */
     int num_set; /* # of set bits */
     unsigned char *ptr; /* bits data */
+    int bytes; /* size of byte data */
 };
 
 void bits_free(struct BloomFilter *bf) {
@@ -130,14 +131,20 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     bf->r = r;
     bf->num_set = 0;
 
-    bytes = ((m * b) + 15) / 8;
-    bf->ptr = ALLOC_N(unsigned char, bytes);
+    bf->bytes = ((m * b) + 15) / 8;
+    bf->ptr = ALLOC_N(unsigned char, bf->bytes);
 
     /* initialize the bits with zeros */
-    memset(bf->ptr, 0, bytes);
+    memset(bf->ptr, 0, bf->bytes);
     rb_iv_set(obj, "@hash_value", rb_hash_new());
 
     return obj;
+}
+
+static VALUE bf_clear(VALUE self) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    memset(bf->ptr, 0, bf->bytes);
 }
 
 static VALUE bf_m(VALUE self) {
@@ -300,10 +307,10 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
     rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
+    rb_define_method(cBloomFilter, "clear", bf_clear, 0);
 
     /* functions that have not been implemented, yet */
 
-    //  rb_define_method(cBloomFilter, "clear", bf_clear, 0);
     //  rb_define_method(cBloomFilter, "&", bf_and, 1);
     //  rb_define_method(cBloomFilter, "|", bf_or, 1);
     //  rb_define_method(cBloomFilter, "<=>", bf_cmp, 1);
