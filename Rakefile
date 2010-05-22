@@ -1,7 +1,6 @@
 require 'rake'
 require 'spec'
 require 'spec/rake/spectask'
-require 'rake/extensiontask'
 
 begin
   require 'jeweler'
@@ -28,5 +27,3 @@ Spec::Rake::SpecTask.new do |t|
   t.spec_opts << "--options" << "spec/spec.opts"
   t.spec_files = FileList['spec/*_spec.rb']
 end
-
-Rake::ExtensionTask.new('cbloomfilter')
