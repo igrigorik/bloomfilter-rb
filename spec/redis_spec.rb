@@ -1,7 +1,6 @@
 require 'helper'
 
 describe BloomFilter do
-
   context "use Redis for storage" do
     it "should store data in Redis" do
       bf = BloomFilter.new(:type => :redis)

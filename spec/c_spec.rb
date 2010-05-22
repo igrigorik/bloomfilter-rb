@@ -10,6 +10,16 @@ describe BloomFilter do
     bf.include?("test").should be_false
   end
 
+  it "should merge" do
+    bf1 = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+    bf2 = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+    bf2.insert("test")
+    bf1.include?("test").should be_false
+    bf1.merge!(bf2)
+    bf1.include?("test").should be_true
+    bf2.include?("test").should be_true
+  end
+
   context "behave like a bloomfilter" do
     it "should test set memerbship" do
       bf = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
@@ -21,14 +31,15 @@ describe BloomFilter do
       bf.include?("test", "test1").should be_true
     end
 
-    it "should work with symbol keys" do
+    it "should work with any object's to_s" do
       bf = BloomFilter.new
       bf.insert(:test)
       bf.insert(:test1)
+      bf.insert(12345)
     
       bf.include?("test").should be_true
       bf.include?("abcd").should be_false
-      bf.include?("test", "test1").should be_true
+      bf.include?("test", "test1", '12345').should be_true
     end
   end
   

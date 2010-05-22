@@ -5,6 +5,8 @@ require 'cbloomfilter'
 
 class BloomFilter
   
+  attr_reader :bf
+
   def initialize(opts = {})
     @opts = {
       :size    => 100,
@@ -60,6 +62,7 @@ class BloomFilter
   def delete(key); @bf.delete(key); end
   def clear; @bf.clear; end
   def size; @bf.num_set; end
+  def merge!(o); @bf.merge!(o.bf); end
 
   def stats
     fp = ((1.0 - Math.exp(-(@opts[:hashes] * size).to_f / @opts[:size])) ** @opts[:hashes]) * 100
