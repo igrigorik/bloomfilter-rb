@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bloomfilter}
-  s.version = "1.2.0"
+  s.version = "1.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ilya Grigorik", "Tatsuya Mori"]
-  s.date = %q{2010-05-22}
+  s.date = %q{2010-08-25}
   s.description = %q{Counting Bloom Filter implemented in Ruby}
   s.email = %q{ilya@igvita.com}
   s.extensions = ["ext/cbloomfilter/extconf.rb"]
@@ -18,23 +18,23 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".gitignore",
-    "README.rdoc",
-    "Rakefile",
-    "VERSION",
-    "bloomfilter.gemspec",
-    "examples/bf.rb",
-    "examples/redis-backed.rb",
-    "examples/simple.rb",
-    "ext/cbloomfilter/cbloomfilter.c",
-    "ext/cbloomfilter/crc32.c",
-    "ext/cbloomfilter/crc32.h",
-    "ext/cbloomfilter/extconf.rb",
-    "lib/bloomfilter.rb",
-    "lib/redisbloom.rb",
-    "spec/c_spec.rb",
-    "spec/helper.rb",
-    "spec/redis_spec.rb",
-    "spec/spec.opts"
+     "README.rdoc",
+     "Rakefile",
+     "VERSION",
+     "bloomfilter.gemspec",
+     "examples/bf.rb",
+     "examples/redis-backed.rb",
+     "examples/simple.rb",
+     "ext/cbloomfilter/cbloomfilter.c",
+     "ext/cbloomfilter/crc32.c",
+     "ext/cbloomfilter/crc32.h",
+     "ext/cbloomfilter/extconf.rb",
+     "lib/bloomfilter.rb",
+     "lib/redisbloom.rb",
+     "spec/c_spec.rb",
+     "spec/helper.rb",
+     "spec/redis_spec.rb",
+     "spec/spec.opts"
   ]
   s.homepage = %q{http://github.com/igrigorik/bloomfilter}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -44,11 +44,11 @@ Gem::Specification.new do |s|
   s.summary = %q{Counting Bloom Filter implemented in Ruby}
   s.test_files = [
     "spec/c_spec.rb",
-    "spec/helper.rb",
-    "spec/redis_spec.rb",
-    "examples/bf.rb",
-    "examples/redis-backed.rb",
-    "examples/simple.rb"
+     "spec/helper.rb",
+     "spec/redis_spec.rb",
+     "examples/bf.rb",
+     "examples/redis-backed.rb",
+     "examples/simple.rb"
   ]
 
   if s.respond_to? :specification_version then

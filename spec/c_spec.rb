@@ -36,13 +36,13 @@ describe BloomFilter do
       bf.insert(:test)
       bf.insert(:test1)
       bf.insert(12345)
-    
+
       bf.include?("test").should be_true
       bf.include?("abcd").should be_false
       bf.include?("test", "test1", '12345').should be_true
     end
   end
-  
+
   context "behave like counting bloom filter" do
     it "should delete / decrement keys" do
       bf = BloomFilter.new
@@ -54,15 +54,15 @@ describe BloomFilter do
       bf.include?("test").should be_false
     end
   end
-  
+
   context "behave like a Hash" do
     it "should respond to key?" do
       bf = BloomFilter.new
- 
+
       bf['foo'] = 'bar'
       bf.key?('foo').should be_true
     end
-    
+
     it "should optionally store the hash values" do
       bf = BloomFilter.new(:values => true)
       bf['foo'] = 'bar'
@@ -70,7 +70,7 @@ describe BloomFilter do
       bf.key?('foo').should be_true
       bf['foo'].should == 'bar'
     end
-    
+
     it "should provide a list of keys" do
       bf = BloomFilter.new(:values => true)
       bf['foo'] = 'bar'
@@ -81,6 +81,29 @@ describe BloomFilter do
       bf = BloomFilter.new
       bf['foo'] = 'bar'
       bf.keys.should be_nil
+    end
+  end
+
+  context "serialize" do
+    after(:each) { File.unlink('bf.out') }
+
+    it "should marshall the bloomfilter" do
+      bf = BloomFilter.new
+      bf['foo'] = 'bar'
+
+      lambda { bf.save('bf.out') }.should_not raise_error
+    end
+
+    it "should load marshalled bloomfilter" do
+      bf = BloomFilter.new
+      bf['foo'] = 'bar'
+      bf['bar'] = 'foo'
+      bf.save('bf.out')
+
+      bf = BloomFilter.load('bf.out')
+      bf.include?('foo').should be_true
+      bf.include?('bar').should be_true
+      bf.include?('baz').should be_false
     end
   end
 end

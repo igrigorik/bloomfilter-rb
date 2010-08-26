@@ -40,7 +40,7 @@ void bucket_unset(struct BloomFilter *bf, int index) {
         bf->ptr[byte_offset] -= (1 << bit_offset) & ((1 << 8) - 1);
         bf->ptr[byte_offset + 1] -= ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
     }
-    
+
 }
 
 void bucket_set(struct BloomFilter *bf, int index) {
@@ -72,7 +72,7 @@ int bucket_get(struct BloomFilter *bf, int index) {
     int bit_offset = (index * bf->b) % 8;
     unsigned int c = bf->ptr[byte_offset];
     c += bf->ptr[byte_offset + 1] << 8;
-   
+
     unsigned int mask = ((1 << bf->b) - 1) << bit_offset;
     return (c & mask) >> bit_offset;
 }
@@ -93,18 +93,18 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
 
     switch (argc) {
         case 5:
-	    if (argv[4] == Qtrue) {
-		    arg5 = INT2FIX(1);
-	    }
+      if (argv[4] == Qtrue) {
+        arg5 = INT2FIX(1);
+      }
         case 4:
-	    arg4 = argv[3];
+      arg4 = argv[3];
         case 3:
-	    arg3 = argv[2];
+      arg3 = argv[2];
         case 2:
-	    arg2 = argv[1];
+      arg2 = argv[1];
         case 1:
-	    arg1 = argv[0];
-	    break;
+      arg1 = argv[0];
+      break;
     }
 
     m = FIX2INT(arg1);
@@ -258,7 +258,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     struct BloomFilter *bf;
 
     rb_scan_args(argc, argv, "*", &tests);
-    
+
     Data_Get_Struct(self, struct BloomFilter, bf);
     vlen = RARRAY_LEN(tests);
     for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
@@ -286,7 +286,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
 
       return Qtrue;
     }
-    
+
 }
 
 static VALUE bf_to_s(VALUE self) {
@@ -305,6 +305,34 @@ static VALUE bf_to_s(VALUE self) {
     return str;
 }
 
+static VALUE bf_bitmap(VALUE self) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+
+    VALUE str = rb_str_new(0, bf->m);
+    unsigned char* ptr = (unsigned char *) RSTRING_PTR(str);
+
+    int i;
+    for (i = 0; i < bf->m; i++)
+        *ptr++ = bucket_get(bf, i);
+
+    return str;
+}
+
+static VALUE bf_load(VALUE self, VALUE bitmap) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    unsigned char* ptr = (unsigned char *) RSTRING_PTR(bitmap);
+
+    int i;
+    for (i = 0; i < bf->m; i++) {
+      if (*ptr++)
+        bucket_set(bf, i);
+    }
+
+    return Qnil;
+}
+
 void Init_cbloomfilter(void) {
     cBloomFilter = rb_define_class("CBloomFilter", rb_cObject);
     rb_define_singleton_method(cBloomFilter, "new", bf_s_new, -1);
@@ -316,9 +344,12 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "insert", bf_insert, 2);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
-    rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
     rb_define_method(cBloomFilter, "clear", bf_clear, 0);
     rb_define_method(cBloomFilter, "merge!", bf_merge, 1);
+
+    rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
+    rb_define_method(cBloomFilter, "bitmap", bf_bitmap, 0);
+    rb_define_method(cBloomFilter, "load", bf_load, 1);
 
     /* functions that have not been implemented, yet */
 
