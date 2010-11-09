@@ -185,7 +185,7 @@ static VALUE bf_insert(VALUE self, VALUE key, VALUE ttl) {
     Data_Get_Struct(self, struct BloomFilter, bf);
 
     skey = rb_obj_as_string(key);
-    ckey = STR2CSTR(skey);
+    ckey = StringValuePtr(skey);
     len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
@@ -227,7 +227,7 @@ static VALUE bf_delete(VALUE self, VALUE key) {
     Data_Get_Struct(self, struct BloomFilter, bf);
 
     skey = rb_obj_as_string(key);
-    ckey = STR2CSTR(skey);
+    ckey = StringValuePtr(skey);
     len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
@@ -264,7 +264,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
       key = rb_ary_entry(tests, tests_idx);
       skey = rb_obj_as_string(key);
-      ckey = STR2CSTR(skey);
+      ckey = StringValuePtr(skey);
       len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
       m = bf->m;
