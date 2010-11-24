@@ -15,6 +15,7 @@ begin
     gemspec.extensions = ["ext/cbloomfilter/extconf.rb"]
     gemspec.rubyforge_project = "bloomfilter"
     gemspec.files = FileList[`git ls-files`.split]
+    gemspec.add_dependency 'redis'
     gemspec.add_development_dependency 'rake'
     gemspec.add_development_dependency 'rspec'
     gemspec.add_development_dependency 'rake-compiler'
