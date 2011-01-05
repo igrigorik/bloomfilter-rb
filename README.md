@@ -17,6 +17,8 @@ Performance of the Bloom filter depends on a number of variables:
 - Determining parameters: [Scalable Datasets: Bloom Filters in Ruby](http://www.igvita.com/2008/12/27/scalable-datasets-bloom-filters-in-ruby/)
 - Applications & reasons behind bloom filter: [Flow analysis: Time based bloom filter](http://www.igvita.com/2010/01/06/flow-analysis-time-based-bloom-filters/)
 
+***
+
 ## MRI/C API Example
 
 MRI/C implementation which creates an in-memory filter which can be saved and reloaded from disk.
@@ -42,6 +44,8 @@ MRI/C implementation which creates an in-memory filter which can be saved and re
     Number of filter hashes (k) : 2
     Predicted false positive rate = 10.87%
 
+***
+
 ## Redis-backed setbit/getbit bloom filter
 
 Uses [getbit](http://redis.io/commands/getbit)/[setbit](http://redis.io/commands/setbit) on Redis strings - efficient, fast, can be shared by multiple/concurrent processes.
@@ -54,6 +58,14 @@ Uses [getbit](http://redis.io/commands/getbit)/[setbit](http://redis.io/commands
 
     bf.delete('test')
     bf.include?('test')     # => false
+
+### Memory footprint
+
+- 1.0% error rate for 1M items, 10 bits/item: *2.5 mb*
+- 1.0% error rate for 150M items, 10 bits per item: *358.52 mb*
+- 0.1% error rate for 150M items, 15 bits per item: *537.33 mb*
+
+***
 
 ## Redis-backed counting bloom filter with TTL's
 Uses regular Redis get/set counters to implement a counting filter with optional TTL expiry. Because each "bit" requires its own key in Redis, you do incur a much larger memory overhead.
