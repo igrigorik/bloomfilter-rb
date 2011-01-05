@@ -1,9 +1,11 @@
 require 'helper'
 
-describe BloomFilter do
+describe BloomFilter::Redis do
+  include BloomFilter
+
   context "use Redis for storage" do
     it "should store data in Redis" do
-      bf = BloomFilter.new(:type => :redis)
+      bf = Redis.new(:type => :redis)
 
       bf.insert(:abcd)
       bf.insert('test')
@@ -14,8 +16,8 @@ describe BloomFilter do
       bf.include?('test', 'abcd').should be_true
     end
 
-    it "should optionally store values" do
-      bf = BloomFilter.new(:type => :redis, :values => true)
+    xit "should optionally store values" do
+      bf = Redis.new(:type => :redis, :values => true)
 
       bf['foo'] = 'bar'
       bf.include?('foo').should be_true
@@ -23,7 +25,7 @@ describe BloomFilter do
     end
 
     it "should accept a TTL value for a key" do
-      bf = BloomFilter.new(:type => :redis, :ttl => 1)
+      bf = Redis.new(:type => :redis, :ttl => 1)
 
       bf.insert('test')
       bf.include?('test').should be_true
@@ -33,7 +35,7 @@ describe BloomFilter do
     end
 
     it "should delete keys from Redis" do
-      bf = BloomFilter.new(:type => :redis)
+      bf = Redis.new(:type => :redis)
 
       bf.insert('test')
       bf.include?('test').should be_true
@@ -43,7 +45,7 @@ describe BloomFilter do
     end
 
     it "should output current stats" do
-      bf = BloomFilter.new(:type => :redis)
+      bf = Redis.new(:type => :redis)
       bf.clear
 
       bf.insert('test')
@@ -53,7 +55,7 @@ describe BloomFilter do
 
     it "should connect to remote redis server" do
       lambda {
-        BloomFilter.new(:type => :redis, :server => {:host => 'localhost'})
+        Redis.new(:type => :redis, :server => {:host => 'localhost'})
       }.should_not raise_error
     end
   end

@@ -1,9 +1,10 @@
 require 'helper'
 
-describe BloomFilter do
+describe BloomFilter::Native do
+  include BloomFilter
 
   it "should clear" do
-    bf = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+    bf = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
     bf.insert("test")
     bf.include?("test").should be_true
     bf.clear
@@ -11,8 +12,8 @@ describe BloomFilter do
   end
 
   it "should merge" do
-    bf1 = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
-    bf2 = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+    bf1 = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+    bf2 = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
     bf2.insert("test")
     bf1.include?("test").should be_false
     bf1.merge!(bf2)
@@ -22,7 +23,7 @@ describe BloomFilter do
 
   context "behave like a bloomfilter" do
     it "should test set memerbship" do
-      bf = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+      bf = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
       bf.insert("test")
       bf.insert("test1")
 
@@ -32,7 +33,7 @@ describe BloomFilter do
     end
 
     it "should work with any object's to_s" do
-      bf = BloomFilter.new
+      bf = Native.new
       bf.insert(:test)
       bf.insert(:test1)
       bf.insert(12345)
@@ -45,7 +46,7 @@ describe BloomFilter do
 
   context "behave like counting bloom filter" do
     it "should delete / decrement keys" do
-      bf = BloomFilter.new
+      bf = Native.new
 
       bf.insert("test")
       bf.include?("test").should be_true
@@ -57,14 +58,14 @@ describe BloomFilter do
 
   context "behave like a Hash" do
     it "should respond to key?" do
-      bf = BloomFilter.new
+      bf = Native.new
 
       bf['foo'] = 'bar'
       bf.key?('foo').should be_true
     end
 
     it "should optionally store the hash values" do
-      bf = BloomFilter.new(:values => true)
+      bf = Native.new(:values => true)
       bf['foo'] = 'bar'
 
       bf.key?('foo').should be_true
@@ -72,13 +73,13 @@ describe BloomFilter do
     end
 
     it "should provide a list of keys" do
-      bf = BloomFilter.new(:values => true)
+      bf = Native.new(:values => true)
       bf['foo'] = 'bar'
       bf['awesome'] = 'bar'
       %w{ awesome foo }.sort.should == bf.keys.sort
 
       # don't store values by default
-      bf = BloomFilter.new
+      bf = Native.new
       bf['foo'] = 'bar'
       bf.keys.should be_nil
     end
@@ -88,19 +89,19 @@ describe BloomFilter do
     after(:each) { File.unlink('bf.out') }
 
     it "should marshall the bloomfilter" do
-      bf = BloomFilter.new
+      bf = Native.new
       bf['foo'] = 'bar'
 
       lambda { bf.save('bf.out') }.should_not raise_error
     end
 
     it "should load marshalled bloomfilter" do
-      bf = BloomFilter.new
+      bf = Native.new
       bf['foo'] = 'bar'
       bf['bar'] = 'foo'
       bf.save('bf.out')
 
-      bf = BloomFilter.load('bf.out')
+      bf = Native.load('bf.out')
       bf.include?('foo').should be_true
       bf.include?('bar').should be_true
       bf.include?('baz').should be_false
