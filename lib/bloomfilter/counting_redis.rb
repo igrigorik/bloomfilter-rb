@@ -7,9 +7,6 @@ module BloomFilter
         :hashes  => 4,
         :seed    => Time.now.to_i,
         :bucket  => 3,
-        :raise   => false,
-        :values  => false,
-
         :ttl => false,
         :server => {}
       }.merge opts
