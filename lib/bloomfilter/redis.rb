@@ -1,7 +1,7 @@
 module BloomFilter
   class Redis < Filter
 
-    def initialize(opts)
+    def initialize(opts = {})
       @opts = {
         :size    => 100,
         :hashes  => 4,
