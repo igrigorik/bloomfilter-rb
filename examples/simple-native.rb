@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-require 'bloomfilter'
+require 'bloomfilter-rb'
 
 WORDS = %w(duck penguin bear panda)
 TEST = %w(penguin moose racooon)
 
-bf = BloomFilter.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+bf = BloomFilter::Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
 
 WORDS.each { |w| bf.insert(w) }
 TEST.each do |w|

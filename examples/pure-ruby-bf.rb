@@ -1,10 +1,9 @@
-#!/usr/bin/env ruby
-require 'bitset'
-require 'zlib'
-
 #
 # Pure ruby implementation of a Bloom filter, just for kicks
 #
+
+require 'bitset'
+require 'zlib'
 
 class BloomFilter
 
@@ -36,7 +35,6 @@ class BloomFilter
   end
 end
 
-
 def main
   bf = BloomFilter.new(1000000, 4, 0)
   num = 0
@@ -47,7 +45,7 @@ def main
       num += 1
       bf.insert(data)
     end
-  end 
+  end
   print "#element = #{num}\n"
 end
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'bloomfilter'
 
-bf = BloomFilter.new(:type => :redis, :ttl => 2, :server => {:host => 'localhost'})
+bf = BloomFilter::CountingRedis.new(:ttl => 2, :server => {:host => 'localhost'})
 
 bf.insert('test')
 puts bf.include?('test')
