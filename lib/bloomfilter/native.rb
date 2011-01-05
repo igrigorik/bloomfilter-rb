@@ -8,29 +8,16 @@ module BloomFilter
         :hashes  => 4,
         :seed    => Time.now.to_i,
         :bucket  => 3,
-        :raise   => false,
-        :type    => :c,
-        :values  => false
+        :raise   => false
       }.merge(opts)
 
-      @bf = create_filter
-    end
+      # arg 1: m => size : number of buckets in a bloom filter
+      # arg 2: k => hashes : number of hash functions
+      # arg 3: s => seed : seed of hash functions
+      # arg 4: b => bucket : number of bits in a bloom filter bucket
+      # arg 5: r => raise : raise on bucket overflow?
 
-    def create_filter(bitmap = nil)
-      case @opts[:type]
-        # arg 1: m => size : number of buckets in a bloom filter
-        # arg 2: k => hashes : number of hash functions
-        # arg 3: s => seed : seed of hash functions
-        # arg 4: b => bucket : number of bits in a bloom filter bucket
-        # arg 5: r => raise : raise on bucket overflow?
-        when :c then
-          bf = CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
-          bf.load(bitmap) if !bitmap.nil?
-          bf
-        when :redis then RedisBloom.new(@opts)
-        else
-          raise "invalid type"
-      end
+      @bf = CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
     end
 
     def insert(key)
@@ -42,16 +29,7 @@ module BloomFilter
       @bf.include?(*keys)
     end
     alias :key? :include?
-
-    def [](key)
-      return nil if not (@opts[:values] and include?(key))
-      @values[key]
-    end
-
-    def keys
-      return nil if not @opts[:values]
-      @values.keys
-    end
+    alias :[] :include?
 
     def delete(key); @bf.delete(key); end
     def clear; @bf.clear; end
@@ -59,21 +37,18 @@ module BloomFilter
     def merge!(o); @bf.merge!(o.bf); end
 
     def bitmap
-      case @opts[:type]
-        when :c then @bf.bitmap
-        else
-          raise "cannot export bitmap for this bloomfilter type"
-      end
+      @bf.bitmap
     end
 
     def marshal_load(ary)
-      @opts, @values, bitmap = *ary
-      @bf = create_filter(bitmap)
-      @bf
+      opts, bitmap = *ary
+
+      @bf = Native.new(opts)
+      @bf.bf.load(bitmap) if !bitmap.nil?
     end
 
     def marshal_dump
-      [@opts, @values, @bf.bitmap]
+      [@opts, @bf.bitmap]
     end
 
     def self.load(filename)
