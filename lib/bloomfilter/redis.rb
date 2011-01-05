@@ -6,11 +6,17 @@ module BloomFilter
         :size    => 100,
         :hashes  => 4,
         :seed    => Time.now.to_i,
-        :bucket  => 3,
         :namespace => 'redis',
+        :eager  => true,
         :server => {}
       }.merge opts
       @db = ::Redis.new(@opts[:server])
+
+      if @opts[:eager]
+        # allocate the memory immediately
+        @db.setbit @opts[:namespace], @opts[:size], 1
+        @db.setbit @opts[:namespace], @opts[:size], 0
+      end
     end
 
     def insert(key, ttl=nil)
