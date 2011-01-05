@@ -1,2 +1,2 @@
 require 'bundler/setup'
-require 'bloomfilter'
+require 'bloomfilter-rb'

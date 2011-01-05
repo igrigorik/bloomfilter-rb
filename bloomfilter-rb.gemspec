@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "bloomfilter/version"
 
 Gem::Specification.new do |s|
-  s.name        = "bloomfilter"
+  s.name        = "bloomfilter-rb"
   s.version     = BloomFilter::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Ilya Grigorik", "Tatsuya Mori"]
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/igrigorik/bloomfilter"
   s.summary     = "Counting Bloom Filter implemented in Ruby"
   s.description = s.summary
-  s.rubyforge_project = "bloomfilter"
+  s.rubyforge_project = "bloomfilter-rb"
 
   s.add_dependency "redis", ">= 2.1.1"
   s.add_development_dependency "rspec"

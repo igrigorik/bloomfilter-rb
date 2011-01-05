@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bloomfilter (1.3.1)
+    bloomfilter-rb (1.3.1)
       redis (>= 2.1.1)
 
 GEM
@@ -23,7 +23,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bloomfilter!
+  bloomfilter-rb!
   rake
   redis (>= 2.1.1)
   rspec
