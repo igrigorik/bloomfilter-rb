@@ -1,11 +1,11 @@
 require 'helper'
 
-describe BloomFilter::Redis do
+describe BloomFilter::CountingRedis do
   include BloomFilter
 
   context "use Redis for storage" do
     it "should store data in Redis" do
-      bf = Redis.new
+      bf = CountingRedis.new
 
       bf.insert(:abcd)
       bf.insert('test')
@@ -17,7 +17,7 @@ describe BloomFilter::Redis do
     end
 
     it "should accept a TTL value for a key" do
-      bf = Redis.new(:ttl => 1)
+      bf = CountingRedis.new(:ttl => 1)
 
       bf.insert('test')
       bf.include?('test').should be_true
@@ -27,7 +27,7 @@ describe BloomFilter::Redis do
     end
 
     it "should delete keys from Redis" do
-      bf = Redis.new
+      bf = CountingRedis.new
 
       bf.insert('test')
       bf.include?('test').should be_true
@@ -37,7 +37,7 @@ describe BloomFilter::Redis do
     end
 
     it "should output current stats" do
-      bf = Redis.new
+      bf = CountingRedis.new
       bf.clear
 
       bf.insert('test')
@@ -46,7 +46,7 @@ describe BloomFilter::Redis do
     end
 
     it "should connect to remote redis server" do
-      lambda { Redis.new }.should_not raise_error
+      lambda { CountingRedis.new }.should_not raise_error
     end
   end
 end

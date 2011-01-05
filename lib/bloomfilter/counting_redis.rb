@@ -1,5 +1,5 @@
 module BloomFilter
-  class Redis < Filter
+  class CountingRedis < Filter
 
     def initialize(opts = {})
       @opts = {
