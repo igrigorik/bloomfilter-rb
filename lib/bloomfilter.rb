@@ -26,7 +26,7 @@ class BloomFilter
       # arg 2: k => hashes : number of hash functions
       # arg 3: s => seed : seed of hash functions
       # arg 4: b => bucket : number of bits in a bloom filter bucket
-      # arg 5: r => rasie : raise on bucket overflow?
+      # arg 5: r => raise : raise on bucket overflow?
       when :c then
         bf = CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
         bf.load(bitmap) if !bitmap.nil?
