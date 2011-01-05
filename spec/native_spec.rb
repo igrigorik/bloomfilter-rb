@@ -56,49 +56,18 @@ describe BloomFilter::Native do
     end
   end
 
-  context "behave like a Hash" do
-    it "should respond to key?" do
-      bf = Native.new
-
-      bf['foo'] = 'bar'
-      bf.key?('foo').should be_true
-    end
-
-    it "should optionally store the hash values" do
-      bf = Native.new(:values => true)
-      bf['foo'] = 'bar'
-
-      bf.key?('foo').should be_true
-      bf['foo'].should == 'bar'
-    end
-
-    it "should provide a list of keys" do
-      bf = Native.new(:values => true)
-      bf['foo'] = 'bar'
-      bf['awesome'] = 'bar'
-      %w{ awesome foo }.sort.should == bf.keys.sort
-
-      # don't store values by default
-      bf = Native.new
-      bf['foo'] = 'bar'
-      bf.keys.should be_nil
-    end
-  end
-
   context "serialize" do
     after(:each) { File.unlink('bf.out') }
 
     it "should marshall the bloomfilter" do
       bf = Native.new
-      bf['foo'] = 'bar'
-
       lambda { bf.save('bf.out') }.should_not raise_error
     end
 
     it "should load marshalled bloomfilter" do
       bf = Native.new
-      bf['foo'] = 'bar'
-      bf['bar'] = 'foo'
+      bf.insert('foo')
+      bf.insert('bar')
       bf.save('bf.out')
 
       bf = Native.load('bf.out')

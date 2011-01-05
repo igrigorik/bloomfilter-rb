@@ -13,7 +13,6 @@ module BloomFilter
         :values  => false
       }.merge(opts)
 
-      @values = {}
       @bf = create_filter
     end
 
@@ -34,20 +33,13 @@ module BloomFilter
       end
     end
 
-    def insert(key, value=nil, ttl=nil)
-      @bf.insert(key, ttl)
-      @values[key] = value if @opts[:values]
+    def insert(key)
+      @bf.insert(key)
     end
     alias :[]= :insert
 
     def include?(*keys)
-      if @opts[:values]
-        keys.collect do |key|
-          @values[key] if @bf.include?(key)
-        end.compact
-      else
-        @bf.include?(*keys)
-      end
+      @bf.include?(*keys)
     end
     alias :key? :include?
 
