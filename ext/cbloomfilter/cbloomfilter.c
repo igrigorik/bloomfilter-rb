@@ -176,7 +176,7 @@ static VALUE bf_num_set(VALUE self) {
     return INT2FIX(bf->num_set);
 }
 
-static VALUE bf_insert(VALUE self, VALUE key, VALUE ttl) {
+static VALUE bf_insert(VALUE self, VALUE key) {
     VALUE skey;
     int index, seed;
     int i, len, m, k, s;
@@ -341,7 +341,7 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "b", bf_b, 0);
     rb_define_method(cBloomFilter, "r", bf_r, 0);
     rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
-    rb_define_method(cBloomFilter, "insert", bf_insert, 2);
+    rb_define_method(cBloomFilter, "insert", bf_insert, 1);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
     rb_define_method(cBloomFilter, "clear", bf_clear, 0);
