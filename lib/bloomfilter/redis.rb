@@ -7,21 +7,21 @@ module BloomFilter
         :hashes  => 4,
         :seed    => Time.now.to_i,
         :bucket  => 3,
-        :ttl => false,
+        :namespace => 'redis',
         :server => {}
       }.merge opts
       @db = ::Redis.new(@opts[:server])
     end
 
     def insert(key, ttl=nil)
-      indexes_for(key) { |idx| @db.setbit 'redis', idx, 1 }
+      indexes_for(key) { |idx| @db.setbit @opts[:namespace], idx, 1 }
     end
     alias :[]= :insert
 
     def include?(*keys)
       keys.each do |key|
         indexes_for(key) do |idx|
-          return false if @db.getbit('redis', idx).zero?
+          return false if @db.getbit(@opts[:namespace], idx).zero?
         end
       end
 
@@ -31,16 +31,16 @@ module BloomFilter
 
     def delete(key)
       indexes_for(key) do |idx|
-        @db.setbit 'redis', idx, 0
+        @db.setbit @opts[:namespace], idx, 0
       end
     end
 
     def clear
-      @db.set 'redis', 0
+      @db.set @opts[:namespace], 0
     end
 
     def num_set
-      @db.strlen 'redis'
+      @db.strlen @opts[:namespace]
     end
     alias :size :num_set
 

@@ -41,5 +41,14 @@ describe BloomFilter::Redis do
     it "should connect to remote redis server" do
       lambda { Redis.new }.should_not raise_error
     end
+
+    it "should allow namespaced BloomFilters" do
+      bf1 = Redis.new(:namespace => :a)
+      bf2 = Redis.new(:namespace => :b)
+
+      bf1.insert('test')
+      bf1.include?('test').should be_true
+      bf2.include?('test').should be_false
+    end
   end
 end
