@@ -22,7 +22,7 @@ class RedisBloom
   def delete(key)
     indexes_for(key).each do |idx|
       if @db.decr(idx).to_i <= 0
-        @db.del(idx) 
+        @db.del(idx)
       end
     end
   end

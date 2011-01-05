@@ -2,6 +2,7 @@ require 'redisbloom'
 require 'cbloomfilter'
 
 class BloomFilter
+  VERSION = "1.3.1"
 
   attr_reader :bf
 
