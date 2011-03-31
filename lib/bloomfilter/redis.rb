@@ -26,8 +26,13 @@ module BloomFilter
 
     def include?(*keys)
       keys.each do |key|
+        indexes = []
+        indexes_for(key) { |idx| indexes << idx }
+
+        return false if @db.getbit(@opts[:namespace], indexes.shift) == 0
+
         result = @db.pipelined do
-          indexes_for(key) do |idx|
+          indexes.each do |idx|
             @db.getbit(@opts[:namespace], idx)
           end
         end
