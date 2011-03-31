@@ -2,22 +2,22 @@ PATH
   remote: .
   specs:
     bloomfilter-rb (2.0.0)
-      redis (>= 2.1.1)
+      redis
 
 GEM
   remote: http://rubygems.org/
   specs:
     diff-lcs (1.1.2)
     rake (0.8.7)
-    redis (2.1.1)
-    rspec (2.3.0)
-      rspec-core (~> 2.3.0)
-      rspec-expectations (~> 2.3.0)
-      rspec-mocks (~> 2.3.0)
-    rspec-core (2.3.1)
-    rspec-expectations (2.3.0)
+    redis (2.2.0)
+    rspec (2.5.0)
+      rspec-core (~> 2.5.0)
+      rspec-expectations (~> 2.5.0)
+      rspec-mocks (~> 2.5.0)
+    rspec-core (2.5.1)
+    rspec-expectations (2.5.0)
       diff-lcs (~> 1.1.2)
-    rspec-mocks (2.3.0)
+    rspec-mocks (2.5.0)
 
 PLATFORMS
   ruby
@@ -25,5 +25,4 @@ PLATFORMS
 DEPENDENCIES
   bloomfilter-rb!
   rake
-  redis (>= 2.1.1)
   rspec
