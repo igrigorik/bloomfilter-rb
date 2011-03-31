@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = s.summary
   s.rubyforge_project = "bloomfilter-rb"
 
-  s.add_dependency "redis", ">= 2.1.1"
+  s.add_dependency "redis"
   s.add_development_dependency "rspec"
   s.add_development_dependency "rake"
 
