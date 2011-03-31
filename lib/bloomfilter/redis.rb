@@ -7,15 +7,13 @@ module BloomFilter
         :hashes  => 4,
         :seed    => Time.now.to_i,
         :namespace => 'redis',
-        :eager  => true,
+        :eager  => false,
         :server => {}
       }.merge opts
       @db = ::Redis.new(@opts[:server])
 
       if @opts[:eager]
-        # allocate the memory immediately
-        @db.setbit @opts[:namespace], @opts[:size], 1
-        @db.setbit @opts[:namespace], @opts[:size], 0
+        @db.setbit @opts[:namespace], @opts[:size]+1, 1
       end
     end
 
