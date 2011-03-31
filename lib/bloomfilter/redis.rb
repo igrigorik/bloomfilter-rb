@@ -18,15 +18,21 @@ module BloomFilter
     end
 
     def insert(key, ttl=nil)
-      indexes_for(key) { |idx| @db.setbit @opts[:namespace], idx, 1 }
+      @db.pipelined do
+        indexes_for(key) { |idx| @db.setbit @opts[:namespace], idx, 1 }
+      end
     end
     alias :[]= :insert
 
     def include?(*keys)
       keys.each do |key|
-        indexes_for(key) do |idx|
-          return false if @db.getbit(@opts[:namespace], idx).zero?
+        result = @db.pipelined do
+          indexes_for(key) do |idx|
+            @db.getbit(@opts[:namespace], idx)
+          end
         end
+
+        return false if result.include?(0)
       end
 
       true
@@ -34,8 +40,10 @@ module BloomFilter
     alias :key? :include?
 
     def delete(key)
-      indexes_for(key) do |idx|
-        @db.setbit @opts[:namespace], idx, 0
+      @db.pipelined do
+        indexes_for(key) do |idx|
+          @db.setbit @opts[:namespace], idx, 0
+        end
       end
     end
 
