@@ -23,26 +23,28 @@ Performance of the Bloom filter depends on a number of variables:
 
 MRI/C implementation which creates an in-memory filter which can be saved and reloaded from disk.
 
-    require 'bloomfilter'
+```ruby
+require 'bloomfilter'
 
-    bf = BloomFilter::Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
-    bf.insert("test")
-    bf.include?("test")     # => true
-    bf.include?("blah")     # => false
+bf = BloomFilter::Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
+bf.insert("test")
+bf.include?("test")     # => true
+bf.include?("blah")     # => false
 
-    bf.delete("test")
-    bf.include?("test")     # => false
+bf.delete("test")
+bf.include?("test")     # => false
 
-    # Hash with a bloom filter!
-    bf["test2"] = "bar"
-    bf["test2"]             # => true
-    bf["test3"]             # => false
+# Hash with a bloom filter!
+bf["test2"] = "bar"
+bf["test2"]             # => true
+bf["test3"]             # => false
 
-    bf.stats
-    Number of filter bits (m): 10
-    Number of filter elements (n): 2
-    Number of filter hashes (k) : 2
-    Predicted false positive rate = 10.87%
+bf.stats
+# => Number of filter bits (m): 10
+# => Number of filter elements (n): 2
+# => Number of filter hashes (k) : 2
+# => Predicted false positive rate = 10.87%
+```
 
 ***
 
@@ -50,14 +52,16 @@ MRI/C implementation which creates an in-memory filter which can be saved and re
 
 Uses [getbit](http://redis.io/commands/getbit)/[setbit](http://redis.io/commands/setbit) on Redis strings - efficient, fast, can be shared by multiple/concurrent processes.
 
-    bf = BloomFilter::Redis.new
+```ruby
+bf = BloomFilter::Redis.new
 
-    bf.insert('test')
-    bf.include?('test')     # => true
-    bf.include?('blah')     # => false
+bf.insert('test')
+bf.include?('test')     # => true
+bf.include?('blah')     # => false
 
-    bf.delete('test')
-    bf.include?('test')     # => false
+bf.delete('test')
+bf.include?('test')     # => false
+```
 
 ### Memory footprint
 
@@ -70,13 +74,15 @@ Uses [getbit](http://redis.io/commands/getbit)/[setbit](http://redis.io/commands
 ## Redis-backed counting bloom filter with TTL's
 Uses regular Redis get/set counters to implement a counting filter with optional TTL expiry. Because each "bit" requires its own key in Redis, you do incur a much larger memory overhead.
 
-    bf = BloomFilter::CountingRedis.new(:ttl => 2)
+```ruby
+bf = BloomFilter::CountingRedis.new(:ttl => 2)
 
-    bf.insert('test')
-    bf.include?('test')     # => true
+bf.insert('test')
+bf.include?('test')     # => true
 
-    sleep(2)
-    bf.include?('test')     # => false
+sleep(2)
+bf.include?('test')     # => false
+```
 
 ## Credits
 
@@ -84,4 +90,4 @@ Tatsuya Mori <valdzone@gmail.com> (Original C implementation: http://vald.x0.com
 
 ## License
 
-(MIT License) - Copyright (c) 2011 Ilya Grigorik
+MIT License - Copyright (c) 2011 Ilya Grigorik
