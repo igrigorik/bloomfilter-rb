@@ -209,13 +209,61 @@ static VALUE bf_insert(VALUE self, VALUE key) {
 
 static VALUE bf_merge(VALUE self, VALUE other) {
     struct BloomFilter *bf, *target;
+    int i;
     Data_Get_Struct(self, struct BloomFilter, bf);
     Data_Get_Struct(other, struct BloomFilter, target);
-    int i;
     for (i = 0; i < bf->bytes; i++) {
         bf->ptr[i] |= target->ptr[i];
     }
     return Qnil;
+}
+
+static VALUE bf_and(VALUE self, VALUE other) {
+    struct BloomFilter *bf, *bf_other, *target;
+    VALUE klass, obj, args[5];
+    int i;
+
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    Data_Get_Struct(other, struct BloomFilter, bf_other);
+    args[0] = INT2FIX(bf->m);
+    args[1] = INT2FIX(bf->k);
+    args[2] = INT2FIX(bf->s);
+    args[3] = INT2FIX(bf->b);
+    args[4] = INT2FIX(bf->r);
+    klass = rb_funcall(self,rb_intern("class"),0);
+    obj = bf_s_new(5,args,klass);
+    Data_Get_Struct(obj, struct BloomFilter, target);
+    // we assume that the parameters of both filters are the same
+    // TODO check if this is true
+    for (i = 0; i < bf->bytes; i++){
+        target->ptr[i] = bf->ptr[i] & bf_other->ptr[i];
+    }
+
+    return obj;
+}
+
+static VALUE bf_or(VALUE self, VALUE other) {
+    struct BloomFilter *bf, *bf_other, *target;
+    VALUE klass, obj, args[5];
+    int i;
+
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    Data_Get_Struct(other, struct BloomFilter, bf_other);
+    args[0] = INT2FIX(bf->m);
+    args[1] = INT2FIX(bf->k);
+    args[2] = INT2FIX(bf->s);
+    args[3] = INT2FIX(bf->b);
+    args[4] = INT2FIX(bf->r);
+    klass = rb_funcall(self,rb_intern("class"),0);
+    obj = bf_s_new(5,args,klass);
+    Data_Get_Struct(obj, struct BloomFilter, target);
+    // we assume that the parameters of both filters are the same
+    // TODO check if this is true
+    for (i = 0; i < bf->bytes; i++){
+        target->ptr[i] = bf->ptr[i] | bf_other->ptr[i];
+    }
+
+    return obj;
 }
 
 static VALUE bf_delete(VALUE self, VALUE key) {
@@ -346,6 +394,8 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
     rb_define_method(cBloomFilter, "clear", bf_clear, 0);
     rb_define_method(cBloomFilter, "merge!", bf_merge, 1);
+    rb_define_method(cBloomFilter, "&", bf_and, 1);
+    rb_define_method(cBloomFilter, "|", bf_or, 1);
 
     rb_define_method(cBloomFilter, "to_s", bf_to_s, 0);
     rb_define_method(cBloomFilter, "bitmap", bf_bitmap, 0);
@@ -353,7 +403,5 @@ void Init_cbloomfilter(void) {
 
     /* functions that have not been implemented, yet */
 
-    //  rb_define_method(cBloomFilter, "&", bf_and, 1);
-    //  rb_define_method(cBloomFilter, "|", bf_or, 1);
     //  rb_define_method(cBloomFilter, "<=>", bf_cmp, 1);
 }

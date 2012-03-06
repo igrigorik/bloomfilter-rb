@@ -42,6 +42,36 @@ describe BloomFilter::Native do
       bf.include?("abcd").should be_false
       bf.include?("test", "test1", '12345').should be_true
     end
+
+    it "should return intersection with other filter" do
+      bf1 = Native.new
+      bf1.insert("test")
+      bf1.insert("test1")
+
+      bf2 = Native.new
+      bf2.insert("test")
+      bf2.insert("test2")
+
+      bf3 = bf1 & bf2
+      bf3.include?("test").should be_true
+      bf3.include?("test1").should be_false
+      bf3.include?("test2").should be_false
+    end
+
+    it "should return union with other filter" do
+      bf1 = Native.new
+      bf1.insert("test")
+      bf1.insert("test1")
+
+      bf2 = Native.new
+      bf2.insert("test")
+      bf2.insert("test2")
+
+      bf3 = bf1 | bf2
+      bf3.include?("test").should be_true
+      bf3.include?("test1").should be_true
+      bf3.include?("test2").should be_true
+    end
   end
 
   context "behave like counting bloom filter" do

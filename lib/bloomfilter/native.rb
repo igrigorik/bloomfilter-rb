@@ -35,6 +35,8 @@ module BloomFilter
     def clear; @bf.clear; end
     def size; @bf.num_set; end
     def merge!(o); @bf.merge!(o.bf); end
+    def &(o); @bf.&(o.bf); end
+    def |(o); @bf.|(o.bf); end
 
     def bitmap
       @bf.bitmap
