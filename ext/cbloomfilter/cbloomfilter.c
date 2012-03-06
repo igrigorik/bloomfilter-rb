@@ -176,6 +176,18 @@ static VALUE bf_num_set(VALUE self) {
     return INT2FIX(bf->num_set);
 }
 
+static VALUE bf_num_bit(VALUE self){
+    struct BloomFilter *bf;
+    int i,j,count = 0;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    for (i = 0; i < bf->bytes; i++) {
+        for (j = 0; j < 8; j++) {
+            count += (bf->ptr[i] >> j) & 1;
+        }
+    }
+    return INT2FIX(count);
+}
+
 static VALUE bf_insert(VALUE self, VALUE key) {
     VALUE skey;
     int index, seed;
@@ -341,6 +353,7 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "b", bf_b, 0);
     rb_define_method(cBloomFilter, "r", bf_r, 0);
     rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
+    rb_define_method(cBloomFilter, "num_bit", bf_num_bit, 0);
     rb_define_method(cBloomFilter, "insert", bf_insert, 1);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
