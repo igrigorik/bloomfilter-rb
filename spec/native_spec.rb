@@ -42,6 +42,16 @@ describe BloomFilter::Native do
       bf.include?("abcd").should be_false
       bf.include?("test", "test1", '12345').should be_true
     end
+
+    it "should return the number of bits set to 1" do
+      bf = Native.new(:hashes => 4)
+      bf.insert("test")
+      bf.bits_count.should == 4
+
+      bf = Native.new(:hashes => 1)
+      bf.insert("test")
+      bf.bits_count.should == 1
+    end
   end
 
   context "behave like counting bloom filter" do
