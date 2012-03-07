@@ -2,3 +2,5 @@
 *.bundle
 *.swp
 ext/Makefile
+lib/cbloomfilter.so
+tmp
