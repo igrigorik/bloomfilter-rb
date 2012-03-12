@@ -170,6 +170,12 @@ static VALUE bf_r(VALUE self) {
     return bf->r == 0 ? Qfalse : Qtrue;
 }
 
+static VALUE bf_s(VALUE self) {
+    struct BloomFilter *bf;
+    Data_Get_Struct(self, struct BloomFilter, bf);
+    return INT2FIX(bf->s);
+}
+
 static VALUE bf_num_set(VALUE self) {
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
@@ -233,8 +239,6 @@ static VALUE bf_and(VALUE self, VALUE other) {
     klass = rb_funcall(self,rb_intern("class"),0);
     obj = bf_s_new(5,args,klass);
     Data_Get_Struct(obj, struct BloomFilter, target);
-    // we assume that the parameters of both filters are the same
-    // TODO check if this is true
     for (i = 0; i < bf->bytes; i++){
         target->ptr[i] = bf->ptr[i] & bf_other->ptr[i];
     }
@@ -257,8 +261,6 @@ static VALUE bf_or(VALUE self, VALUE other) {
     klass = rb_funcall(self,rb_intern("class"),0);
     obj = bf_s_new(5,args,klass);
     Data_Get_Struct(obj, struct BloomFilter, target);
-    // we assume that the parameters of both filters are the same
-    // TODO check if this is true
     for (i = 0; i < bf->bytes; i++){
         target->ptr[i] = bf->ptr[i] | bf_other->ptr[i];
     }
@@ -388,6 +390,7 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "k", bf_k, 0);
     rb_define_method(cBloomFilter, "b", bf_b, 0);
     rb_define_method(cBloomFilter, "r", bf_r, 0);
+    rb_define_method(cBloomFilter, "s", bf_s, 0);
     rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
     rb_define_method(cBloomFilter, "insert", bf_insert, 1);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);

@@ -44,11 +44,11 @@ describe BloomFilter::Native do
     end
 
     it "should return intersection with other filter" do
-      bf1 = Native.new
+      bf1 = Native.new(:seed => 1)
       bf1.insert("test")
       bf1.insert("test1")
 
-      bf2 = Native.new
+      bf2 = Native.new(:seed => 1)
       bf2.insert("test")
       bf2.insert("test2")
 
@@ -58,12 +58,22 @@ describe BloomFilter::Native do
       bf3.include?("test2").should be_false
     end
 
+    it "should raise an exception when intersection is to be computed for incompatible filters" do
+      bf1 = Native.new(:size => 10)
+      bf1.insert("test")
+
+      bf2 = Native.new(:size => 20)
+      bf2.insert("test")
+
+      proc {bf1 & bf2}.should raise_error(ArgumentError)
+    end
+
     it "should return union with other filter" do
-      bf1 = Native.new
+      bf1 = Native.new(:seed => 1)
       bf1.insert("test")
       bf1.insert("test1")
 
-      bf2 = Native.new
+      bf2 = Native.new(:seed => 1)
       bf2.insert("test")
       bf2.insert("test2")
 
@@ -71,6 +81,16 @@ describe BloomFilter::Native do
       bf3.include?("test").should be_true
       bf3.include?("test1").should be_true
       bf3.include?("test2").should be_true
+    end
+
+    it "should raise an exception when union is to be computed for incompatible filters" do
+      bf1 = Native.new(:size => 10)
+      bf1.insert("test")
+
+      bf2 = Native.new(:size => 20)
+      bf2.insert("test")
+
+      proc {bf1 | bf2}.should raise_error(ArgumentError)
     end
   end
 
