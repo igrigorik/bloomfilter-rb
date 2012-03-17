@@ -41,6 +41,26 @@ module BloomFilter
       @bf.set_bits
     end
 
+    # Computes the intersection of two Bloom filters.
+    # It assumes that both filters have the same size -
+    # if this is not true +ArgumentError+ is raised.
+    def &(o)
+      raise ArgumentError.new() unless same_parameters?(o)
+      result = self.class.new
+      result.instance_variable_set(:@bf,@bf.&(o.bf))
+      result
+    end
+
+    # Computes the union of two Bloom filters.
+    # It assumes that both filters have the same size -
+    # if this is not true +ArgumentError+ is raised.
+    def |(o)
+      raise ArgumentError.new() unless same_parameters?(o)
+      result = self.class.new
+      result.instance_variable_set(:@bf,@bf.|(o.bf))
+      result
+    end
+
     def bitmap
       @bf.bitmap
     end
@@ -64,6 +84,15 @@ module BloomFilter
       File.open(filename, 'w') do |f|
         f << Marshal.dump(self)
       end
+    end
+
+    protected
+
+    # Returns true if parameters of the +o+ther filter are
+    # the same.
+    def same_parameters?(o)
+      @bf.m == o.bf.m && @bf.k == o.bf.k &&
+        @bf.s == o.bf.s && @bf.b == o.bf.b
     end
 
   end
