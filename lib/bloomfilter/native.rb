@@ -36,6 +36,11 @@ module BloomFilter
     def size; @bf.num_set; end
     def merge!(o); @bf.merge!(o.bf); end
 
+    # Returns the number of bits that are set to 1 in the filter.
+    def bits_count
+      @bf.num_bit
+    end
+
     def bitmap
       @bf.bitmap
     end
