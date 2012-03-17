@@ -47,11 +47,13 @@ describe Native do
     it "should return the number of bits set to 1" do
       bf = Native.new(:hashes => 4)
       bf.insert("test")
-      bf.bits_count.should == 4
+      bf.set_bits.should == 4
+      bf.delete("test")
+      bf.set_bits.should == 0
 
       bf = Native.new(:hashes => 1)
       bf.insert("test")
-      bf.bits_count.should == 1
+      bf.set_bits.should == 1
     end
   end
 

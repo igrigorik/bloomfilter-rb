@@ -19,7 +19,6 @@ struct BloomFilter {
     int k; /* # of hash functions */
     int s; /* # seed of hash functions */
     int r; /* # raise on bucket overflow? */
-    int num_set; /* # of set bits */
     unsigned char *ptr; /* bits data */
     int bytes; /* size of byte data */
 };
@@ -127,7 +126,6 @@ static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     bf->k = k;
     bf->s = s;
     bf->r = r;
-    bf->num_set = 0;
 
     bf->bytes = ((m * b) + 15) / 8;
     bf->ptr = ALLOC_N(unsigned char, bf->bytes);
@@ -170,13 +168,7 @@ static VALUE bf_r(VALUE self) {
     return bf->r == 0 ? Qfalse : Qtrue;
 }
 
-static VALUE bf_num_set(VALUE self) {
-    struct BloomFilter *bf;
-    Data_Get_Struct(self, struct BloomFilter, bf);
-    return INT2FIX(bf->num_set);
-}
-
-static VALUE bf_num_bit(VALUE self){
+static VALUE bf_set_bits(VALUE self){
     struct BloomFilter *bf;
     int i,j,count = 0;
     Data_Get_Struct(self, struct BloomFilter, bf);
@@ -215,7 +207,6 @@ static VALUE bf_insert(VALUE self, VALUE key) {
         bucket_set(bf, index);
     }
 
-    bf->num_set += 1;
     return Qnil;
 }
 
@@ -257,7 +248,6 @@ static VALUE bf_delete(VALUE self, VALUE key) {
         bucket_unset(bf, index);
     }
 
-    bf->num_set += 1;
     return Qnil;
 }
 
@@ -352,8 +342,7 @@ void Init_cbloomfilter(void) {
     rb_define_method(cBloomFilter, "k", bf_k, 0);
     rb_define_method(cBloomFilter, "b", bf_b, 0);
     rb_define_method(cBloomFilter, "r", bf_r, 0);
-    rb_define_method(cBloomFilter, "num_set", bf_num_set, 0);
-    rb_define_method(cBloomFilter, "num_bit", bf_num_bit, 0);
+    rb_define_method(cBloomFilter, "set_bits", bf_set_bits, 0);
     rb_define_method(cBloomFilter, "insert", bf_insert, 1);
     rb_define_method(cBloomFilter, "delete", bf_delete, 1);
     rb_define_method(cBloomFilter, "include?", bf_include, -1);
