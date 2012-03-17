@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bloomfilter-rb (2.0.0)
+    bloomfilter-rb (2.1.1)
       redis
 
 GEM
@@ -9,7 +9,9 @@ GEM
   specs:
     diff-lcs (1.1.2)
     rake (0.8.7)
-    redis (2.2.0)
+    rake-compiler (0.8.0)
+      rake
+    redis (2.2.2)
     rspec (2.5.0)
       rspec-core (~> 2.5.0)
       rspec-expectations (~> 2.5.0)
@@ -25,4 +27,5 @@ PLATFORMS
 DEPENDENCIES
   bloomfilter-rb!
   rake
+  rake-compiler
   rspec

@@ -1,10 +1,9 @@
 require 'helper'
 
 describe BloomFilter::Redis do
-  include BloomFilter
 
   context "use Redis bitstring for storage" do
-    let(:bf) { Redis.new }
+    let(:bf) { BloomFilter::Redis.new }
 
     it "should store data in Redis" do
       bf.insert(:abcd)
@@ -39,12 +38,12 @@ describe BloomFilter::Redis do
     end
 
     it "should connect to remote redis server" do
-      lambda { Redis.new }.should_not raise_error
+      lambda { BloomFilter::Redis.new }.should_not raise_error
     end
 
     it "should allow namespaced BloomFilters" do
-      bf1 = Redis.new(:namespace => :a)
-      bf2 = Redis.new(:namespace => :b)
+      bf1 = BloomFilter::Redis.new(:namespace => :a)
+      bf2 = BloomFilter::Redis.new(:namespace => :b)
 
       bf1.insert('test')
       bf1.include?('test').should be_true

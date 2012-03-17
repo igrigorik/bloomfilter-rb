@@ -1,7 +1,8 @@
 require 'helper'
 
-describe BloomFilter::Native do
-  include BloomFilter
+include BloomFilter
+
+describe Native do
 
   it "should clear" do
     bf = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)

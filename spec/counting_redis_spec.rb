@@ -1,7 +1,8 @@
 require 'helper'
 
-describe BloomFilter::CountingRedis do
-  include BloomFilter
+include BloomFilter
+
+describe CountingRedis do
 
   context "use Redis for storage" do
     it "should store data in Redis" do
