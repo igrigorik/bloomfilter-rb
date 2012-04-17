@@ -82,7 +82,7 @@ module BloomFilter
 
     def save(filename)
       File.open(filename, 'w') do |f|
-        f << Marshal.dump(self)
+        f << Marshal.dump(self).force_encoding('UTF-8')
       end
     end
 
