@@ -78,7 +78,7 @@ describe Native do
       bf2 = Native.new(:size => 20)
       bf2.insert("test")
 
-      proc {bf1 & bf2}.should raise_error(ArgumentError)
+      proc {bf1 & bf2}.should raise_error(BloomFilter::ConfigurationMismatch)
     end
 
     it "should return union with other filter" do
