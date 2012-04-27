@@ -1,7 +1,9 @@
 module BloomFilter
+  BloomFilter::ConfigurationMismatch = Class.new(ArgumentError)
+  
   class Native < Filter
     attr_reader :bf
-
+    
     def initialize(opts = {})
       @opts = {
         :size    => 100,
@@ -45,7 +47,7 @@ module BloomFilter
     # It assumes that both filters have the same size -
     # if this is not true +ArgumentError+ is raised.
     def &(o)
-      raise ArgumentError.new() unless same_parameters?(o)
+      raise BloomFilter::ConfigurationMismatch.new unless same_parameters?(o)
       result = self.class.new
       result.instance_variable_set(:@bf,@bf.&(o.bf))
       result
@@ -55,7 +57,7 @@ module BloomFilter
     # It assumes that both filters have the same size -
     # if this is not true +ArgumentError+ is raised.
     def |(o)
-      raise ArgumentError.new() unless same_parameters?(o)
+      raise BloomFilter::ConfigurationMismatch.new unless same_parameters?(o)
       result = self.class.new
       result.instance_variable_set(:@bf,@bf.|(o.bf))
       result
