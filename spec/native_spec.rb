@@ -23,7 +23,7 @@ describe Native do
   end
 
   context "behave like a bloomfilter" do
-    it "should test set memerbship" do
+    it "should test set membership" do
       bf = Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
       bf.insert("test")
       bf.insert("test1")
