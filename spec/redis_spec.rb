@@ -5,6 +5,11 @@ describe BloomFilter::Redis do
   context "use Redis bitstring for storage" do
     let(:bf) { BloomFilter::Redis.new }
 
+    before do
+      # clear all redis databases
+      bf.instance_variable_get(:@db).flushall
+    end
+
     it "should store data in Redis" do
       bf.insert(:abcd)
       bf.insert('test')
