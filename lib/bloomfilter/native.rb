@@ -45,7 +45,7 @@ module BloomFilter
 
     # Computes the intersection of two Bloom filters.
     # It assumes that both filters have the same size -
-    # if this is not true +ArgumentError+ is raised.
+    # if this is not true +BloomFilter::ConfigurationMismatch+ is raised.
     def &(o)
       raise BloomFilter::ConfigurationMismatch.new unless same_parameters?(o)
       result = self.class.new
@@ -55,7 +55,7 @@ module BloomFilter
 
     # Computes the union of two Bloom filters.
     # It assumes that both filters have the same size -
-    # if this is not true +ArgumentError+ is raised.
+    # if this is not true +BloomFilter::ConfigurationMismatch+ is raised.
     def |(o)
       raise BloomFilter::ConfigurationMismatch.new unless same_parameters?(o)
       result = self.class.new
