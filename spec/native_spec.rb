@@ -133,10 +133,12 @@ describe Native do
       bf.insert('bar')
       bf.save('bf.out')
 
-      bf = Native.load('bf.out')
-      bf.include?('foo').should be_true
-      bf.include?('bar').should be_true
-      bf.include?('baz').should be_false
+      bf2 = Native.load('bf.out')
+      bf2.include?('foo').should be_true
+      bf2.include?('bar').should be_true
+      bf2.include?('baz').should be_false
+
+      bf.send(:same_parameters?, bf2).should be_true
     end
   end
 end
