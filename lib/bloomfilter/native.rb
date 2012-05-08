@@ -70,8 +70,8 @@ module BloomFilter
     def marshal_load(ary)
       opts, bitmap = *ary
 
-      @bf = Native.new(opts)
-      @bf.bf.load(bitmap) if !bitmap.nil?
+      initialize(opts)
+      @bf.load(bitmap) if !bitmap.nil?
     end
 
     def marshal_dump
