@@ -10,7 +10,7 @@ module BloomFilter
         :eager  => false,
         :server => {}
       }.merge opts
-      @db = ::Redis.new(@opts[:server])
+      @db = @opts.delete(:db) || ::Redis.new(@opts[:server])
 
       if @opts[:eager]
         @db.setbit @opts[:namespace], @opts[:size]+1, 1

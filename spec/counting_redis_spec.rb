@@ -52,5 +52,12 @@ describe CountingRedis do
     it "should connect to remote redis server" do
       lambda { CountingRedis.new }.should_not raise_error
     end
+
+    it "should allow redis client instance to be passed in" do
+      redis_client = mock Redis
+      bf = BloomFilter::CountingRedis.new(:db => redis_client)
+      bf.instance_variable_get(:@db).should be == redis_client
+    end
+
   end
 end
