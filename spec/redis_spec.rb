@@ -46,6 +46,12 @@ describe BloomFilter::Redis do
       lambda { BloomFilter::Redis.new }.should_not raise_error
     end
 
+    it "should allow redis client instance to be passed in" do
+      redis_client = mock ::Redis
+      bf = BloomFilter::Redis.new(:db => redis_client)
+      bf.instance_variable_get(:@db).should be == redis_client
+    end
+
     it "should allow namespaced BloomFilters" do
       bf1 = BloomFilter::Redis.new(:namespace => :a)
       bf2 = BloomFilter::Redis.new(:namespace => :b)
