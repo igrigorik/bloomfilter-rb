@@ -6,3 +6,4 @@
 ext/Makefile
 lib/cbloomfilter.so
 tmp
+Gemfile.lock
