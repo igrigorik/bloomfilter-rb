@@ -41,7 +41,7 @@ def main
   while line = ARGF.gets
     data = line.chop
 
-    if bf.new_entry?(data)
+    if bf.new?(data)
       num += 1
       bf.insert(data)
     end
