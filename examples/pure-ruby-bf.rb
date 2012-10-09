@@ -10,8 +10,8 @@ class BloomFilter
   def initialize(max_entries, num_hashes, seed)
     @num_hashes = num_hashes
     @size = max_entries.to_i
-    @bitmap = BitSet.new(@size)
-    @__mask = BitSet.new(@size)
+    @bitmap = Bitset.new(@size)
+    @__mask = Bitset.new(@size)
     @seed = seed
   end
 
@@ -41,7 +41,7 @@ def main
   while line = ARGF.gets
     data = line.chop
 
-    if bf.new_entry?(data)
+    if bf.new?(data)
       num += 1
       bf.insert(data)
     end
