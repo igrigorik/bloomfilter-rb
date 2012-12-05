@@ -361,13 +361,11 @@ static VALUE bf_bitmap(VALUE self) {
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
 
-    VALUE str = rb_str_new(0, bf->m);
+    VALUE str = rb_str_new(0, bf->bytes);
     unsigned char* ptr = (unsigned char *) RSTRING_PTR(str);
 
-    int i;
-    for (i = 0; i < bf->m; i++)
-        *ptr++ = bucket_get(bf, i);
-
+    memcpy(ptr, bf->ptr, bf->bytes);
+    
     return str;
 }
 
@@ -376,11 +374,7 @@ static VALUE bf_load(VALUE self, VALUE bitmap) {
     Data_Get_Struct(self, struct BloomFilter, bf);
     unsigned char* ptr = (unsigned char *) RSTRING_PTR(bitmap);
 
-    int i;
-    for (i = 0; i < bf->m; i++) {
-      if (*ptr++)
-        bucket_set(bf, i);
-    }
+    memcpy(bf->ptr, ptr, bf->bytes);    
 
     return Qnil;
 }

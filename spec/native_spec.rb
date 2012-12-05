@@ -140,5 +140,16 @@ describe Native do
 
       bf.send(:same_parameters?, bf2).should be_true
     end
+
+    it "should serialize to a file size proporational its bucket size" do
+      fs_size = 0
+      8.times do |i|
+        bf = Native.new(size: 10_000, bucket: i+1)
+        bf.save('bf.out')
+        prev_size, fs_size = fs_size, File.size('bf.out')
+        prev_size.should < fs_size
+      end
+    end
+
   end
 end
