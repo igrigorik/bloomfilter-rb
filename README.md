@@ -24,7 +24,7 @@ Performance of the Bloom filter depends on a number of variables:
 MRI/C implementation which creates an in-memory filter which can be saved and reloaded from disk.
 
 ```ruby
-require 'bloomfilter'
+require 'bloomfilter-rb'
 
 bf = BloomFilter::Native.new(:size => 100, :hashes => 2, :seed => 1, :bucket => 3, :raise => false)
 bf.insert("test")
