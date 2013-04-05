@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Ilya Grigorik", "Tatsuya Mori"]
   s.email       = ["ilya@igvita.com"]
-  s.homepage    = "http://github.com/igrigorik/bloomfilter"
+  s.homepage    = "http://github.com/igrigorik/bloomfilter-rb"
   s.summary     = "Counting Bloom Filter implemented in Ruby"
   s.description = s.summary
   s.rubyforge_project = "bloomfilter-rb"
