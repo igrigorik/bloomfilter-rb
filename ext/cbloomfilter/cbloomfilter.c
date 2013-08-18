@@ -36,8 +36,13 @@ void bucket_unset(struct BloomFilter *bf, int index) {
     if ((c & mask) == 0) {
       // do nothing
     } else {
-        bf->ptr[byte_offset] -= (1 << bit_offset) & ((1 << 8) - 1);
-        bf->ptr[byte_offset + 1] -= ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
+        // reduce the counter: 11 00 => 10 00 (suppose bf->b is 2)
+        c -= (1 << bit_offset) & ((1 << 8) -1);
+        // shift the bitmap right by 1 bit: 10 00 => 01 00
+        c = (~mask & c) | ((c & mask) >> (bit_offset + 1) << bit_offset);
+
+        bf->ptr[byte_offset] = c & ((1 << 8) - 1);
+        bf->ptr[byte_offset + 1] = (c & ((1 << 16) - 1)) >> 8;
     }
 
 }
@@ -51,8 +56,9 @@ void bucket_set(struct BloomFilter *bf, int index) {
     if ((c & mask) == mask) {
         if (bf->r == 1) rb_raise(rb_eRuntimeError, "bucket got filled up");
     } else {
-        bf->ptr[byte_offset] += (1 << bit_offset) & ((1 << 8) - 1);
-        bf->ptr[byte_offset + 1] += ((1 << bit_offset) & ((1 << 16) - 1)) >> 8;
+        c = c + ((1 << bit_offset) & ((1 << 8) -1)) | c;
+        bf->ptr[byte_offset] = c & ((1 << 8) - 1);
+        bf->ptr[byte_offset + 1] = (c & ((1 << 16) - 1)) >> 8;
     }
 }
 
