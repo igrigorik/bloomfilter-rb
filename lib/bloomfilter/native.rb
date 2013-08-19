@@ -35,7 +35,7 @@ module BloomFilter
 
     def delete(key); @bf.delete(key); end
     def clear; @bf.clear; end
-    def size; @bf.num_set; end
+    def size; @bf.set_bits; end
     def merge!(o); @bf.merge!(o.bf); end
 
     # Returns the number of bits that are set to 1 in the filter.
