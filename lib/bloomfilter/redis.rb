@@ -15,6 +15,8 @@ module BloomFilter
       if @opts[:eager]
         @db.setbit @opts[:namespace], @opts[:size]+1, 1
       end
+
+      @opts.freeze
     end
 
     def insert(key, ttl=nil)

@@ -1,5 +1,9 @@
 module BloomFilter
   class Filter
+    def options
+      @opts
+    end
+
     def stats
       fp = ((1.0 - Math.exp(-(@opts[:hashes] * size).to_f / @opts[:size])) ** @opts[:hashes]) * 100
       printf "Number of filter buckets (m): %d\n" % @opts[:size]

@@ -179,7 +179,8 @@ describe Native do
 
     it "should load and old style file with m=100 and b=3" do
       bf = Native.load File.join(File.dirname(__FILE__), '/data/bf_m100_b3.old')
-      bf.bucket.should eq(3)
+      bf.options[:size].should eq(100)
+      bf.options[:bucket].should eq(3)
       bf.include?('test').should be_true
     end
 
