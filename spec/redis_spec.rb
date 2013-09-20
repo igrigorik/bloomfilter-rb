@@ -39,7 +39,10 @@ describe BloomFilter::Redis do
     it "should output current stats" do
       bf.clear
       bf.insert('test')
-      lambda { bf.stats }.should_not raise_error
+
+      SpecHelper.silence_stdout do
+        lambda { bf.stats }.should_not raise_error
+      end
     end
 
     it "should connect to remote redis server" do
@@ -47,7 +50,7 @@ describe BloomFilter::Redis do
     end
 
     it "should allow redis client instance to be passed in" do
-      redis_client = mock ::Redis
+      redis_client = double ::Redis
       bf = BloomFilter::Redis.new(:db => redis_client)
       bf.instance_variable_get(:@db).should be == redis_client
     end

@@ -85,7 +85,7 @@ int bucket_get(struct BloomFilter *bf, int index) {
 static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     struct BloomFilter *bf;
     VALUE arg1, arg2, arg3, arg4, arg5, obj;
-    int m, k, s, b, r, bytes;
+    int m, k, s, b, r;
 
     obj = Data_Make_Struct(self, struct BloomFilter, NULL, bits_free, bf);
 
@@ -310,7 +310,8 @@ static VALUE bf_delete(VALUE self, VALUE key) {
 
 static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     int index, seed;
-    int i, len, m, k, s, tests_idx, vlen;
+    int i, len, m, k, s, tests_idx;
+    long vlen;
     char *ckey;
     VALUE tests, key, skey;
     struct BloomFilter *bf;
@@ -345,6 +346,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
       return Qtrue;
     }
 
+    return Qfalse;
 }
 
 static VALUE bf_to_s(VALUE self) {
@@ -371,7 +373,7 @@ static VALUE bf_bitmap(VALUE self) {
     unsigned char* ptr = (unsigned char *) RSTRING_PTR(str);
 
     memcpy(ptr, bf->ptr, bf->bytes);
-    
+
     return str;
 }
 
@@ -380,7 +382,7 @@ static VALUE bf_load(VALUE self, VALUE bitmap) {
     Data_Get_Struct(self, struct BloomFilter, bf);
     unsigned char* ptr = (unsigned char *) RSTRING_PTR(bitmap);
 
-    memcpy(bf->ptr, ptr, bf->bytes);    
+    memcpy(bf->ptr, ptr, bf->bytes);
 
     return Qnil;
 }

@@ -12,7 +12,7 @@ describe CountingRedis do
         # clear all redis databases
         bf.instance_variable_get(:@db).flushall
       end
-      
+
       it "should store data in Redis" do
         bf.insert(:abcd)
         bf.insert('test')
@@ -22,7 +22,7 @@ describe CountingRedis do
         bf.include?('test', 'test2').should be_false
         bf.include?('test', 'abcd').should be_true
       end
-      
+
       it "should delete keys from Redis" do
         bf.insert('test')
         bf.include?('test').should be_true
@@ -34,14 +34,17 @@ describe CountingRedis do
       it "should output current stats" do
         bf.insert('test')
         bf.size.should == 4
-        lambda { bf.stats }.should_not raise_error
+
+        SpecHelper.silence_stdout do
+          lambda { bf.stats }.should_not raise_error
+        end
       end
     end
-    
+
     it "should accept a TTL value for a key" do
       bf = CountingRedis.new(:ttl => 1)
       bf.instance_variable_get(:@db).flushall
-      
+
       bf.insert('test')
       bf.include?('test').should be_true
 
@@ -54,7 +57,7 @@ describe CountingRedis do
     end
 
     it "should allow redis client instance to be passed in" do
-      redis_client = mock Redis
+      redis_client = double Redis
       bf = BloomFilter::CountingRedis.new(:db => redis_client)
       bf.instance_variable_get(:@db).should be == redis_client
     end
