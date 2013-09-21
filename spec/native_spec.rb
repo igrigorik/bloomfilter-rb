@@ -130,12 +130,6 @@ describe Native do
       5.times { |n| bf.insert n.to_s }
       bf.bitmap.length.should eq(10 + 1) # 1 null terminator
     end
-
-    it "should do shit" do
-      bf = Native.new(:size => 10)
-      bf.insert('test')
-      bf.save File.join(File.dirname(__FILE__), '/data/bf.new')
-    end
   end
 
   context "serialize" do
@@ -179,8 +173,8 @@ describe Native do
 
     it "should load and old style file with m=100 and b=3" do
       bf = Native.load File.join(File.dirname(__FILE__), '/data/bf_m100_b3.old')
-      bf.options[:size].should eq(100)
-      bf.options[:bucket].should eq(3)
+      bf.opts[:size].should eq(100)
+      bf.opts[:bucket].should eq(3)
       bf.include?('test').should be_true
     end
 

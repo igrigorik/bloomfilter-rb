@@ -1,8 +1,6 @@
 module BloomFilter
   class Filter
-    def options
-      @opts
-    end
+    attr_reader :opts
 
     def stats
       fp = ((1.0 - Math.exp(-(@opts[:hashes] * size).to_f / @opts[:size])) ** @opts[:hashes]) * 100
