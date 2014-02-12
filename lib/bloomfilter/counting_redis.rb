@@ -3,12 +3,13 @@ module BloomFilter
 
     def initialize(opts = {})
       @opts = {
-        :size    => 100,
-        :hashes  => 4,
-        :seed    => Time.now.to_i,
-        :bucket  => 3,
-        :ttl => false,
-        :server => {}
+        :identifier => 'rbloom',
+        :size       => 100,
+        :hashes     => 4,
+        :seed       => Time.now.to_i,
+        :bucket     => 3,
+        :ttl        => false,
+        :server     => {}
       }.merge opts
       @db = @opts.delete(:db) || ::Redis.new(@opts[:server])
     end
@@ -38,7 +39,7 @@ module BloomFilter
     alias :key? :include?
 
     def num_set
-      @db.keys("rbloom:*").size
+      @db.eval("return #redis.call('keys', '#{@opts[:identifier]}:*')")
     end
     alias :size :num_set
 
@@ -52,7 +53,7 @@ module BloomFilter
       def indexes_for(key)
         indexes = []
         @opts[:hashes].times do |i|
-          indexes.push "rbloom:" + (Zlib.crc32("#{key}:#{i+@opts[:seed]}") % @opts[:size]).to_s
+          indexes.push @opts[:identifier] + ":" + (Zlib.crc32("#{key}:#{i+@opts[:seed]}") % @opts[:size]).to_s
         end
 
         indexes
