@@ -12,6 +12,8 @@ module BloomFilter
         :server     => {}
       }.merge opts
       @db = @opts.delete(:db) || ::Redis.new(@opts[:server])
+
+      @opts.freeze
     end
 
     def insert(key, ttl=nil)

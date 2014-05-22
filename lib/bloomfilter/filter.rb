@@ -1,5 +1,7 @@
 module BloomFilter
   class Filter
+    attr_reader :opts
+
     def stats
       fp = ((1.0 - Math.exp(-(@opts[:hashes] * size).to_f / @opts[:size])) ** @opts[:hashes]) * 100
       printf "Number of filter buckets (m): %d\n" % @opts[:size]

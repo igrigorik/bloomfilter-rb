@@ -1,9 +1,9 @@
 module BloomFilter
   BloomFilter::ConfigurationMismatch = Class.new(ArgumentError)
-  
+
   class Native < Filter
     attr_reader :bf
-    
+
     def initialize(opts = {})
       @opts = {
         :size    => 100,
@@ -11,7 +11,7 @@ module BloomFilter
         :seed    => Time.now.to_i,
         :bucket  => 3,
         :raise   => false
-      }.merge(opts)
+      }.merge(opts).freeze
 
       # arg 1: m => size : number of buckets in a bloom filter
       # arg 2: k => hashes : number of hash functions

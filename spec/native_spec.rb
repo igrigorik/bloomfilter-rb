@@ -119,6 +119,19 @@ describe Native do
     end
   end
 
+  context "bitmap" do
+    it "should be a byte string" do
+      bf = Native.new(:size => 80, :bucket => 1)
+      bf.bitmap.length.should eq(10 + 1) # 1 null terminator
+    end
+
+    it "should still be a byte string with content" do
+      bf = Native.new(:size => 80, :bucket => 1)
+      5.times { |n| bf.insert n.to_s }
+      bf.bitmap.length.should eq(10 + 1) # 1 null terminator
+    end
+  end
+
   context "serialize" do
     after(:each) { File.unlink('bf.out') }
 
@@ -144,12 +157,30 @@ describe Native do
     it "should serialize to a file size proporational its bucket size" do
       fs_size = 0
       8.times do |i|
-        bf = Native.new(size: 10_000, bucket: i+1)
+        bf = Native.new(:size => 10_000, :bucket => i+1)
         bf.save('bf.out')
         prev_size, fs_size = fs_size, File.size('bf.out')
         prev_size.should < fs_size
       end
     end
+  end
 
+  context "loading old and new" do
+    it "should load old style files" do
+      bf = Native.load File.join(File.dirname(__FILE__), '/data/bf.old')
+      bf.include?('test').should be_true
+    end
+
+    it "should load and old style file with m=100 and b=3" do
+      bf = Native.load File.join(File.dirname(__FILE__), '/data/bf_m100_b3.old')
+      bf.opts[:size].should eq(100)
+      bf.opts[:bucket].should eq(3)
+      bf.include?('test').should be_true
+    end
+
+    it "should load new style files" do
+      bf = Native.load File.join(File.dirname(__FILE__), '/data/bf.new')
+      bf.include?('test').should be_true
+    end
   end
 end
