@@ -5,7 +5,6 @@ require "bloomfilter/version"
 Gem::Specification.new do |s|
   s.name        = "bloomfilter-rb"
   s.version     = BloomFilter::VERSION
-  s.platform    = Gem::Platform::RUBY
   s.authors     = ["Ilya Grigorik", "Tatsuya Mori"]
   s.email       = ["ilya@igvita.com"]
   s.homepage    = "http://github.com/igrigorik/bloomfilter-rb"
@@ -17,9 +16,14 @@ Gem::Specification.new do |s|
   s.add_dependency "RubyInline"
   s.add_development_dependency "rspec"
   s.add_development_dependency "rake"
-  s.add_development_dependency "rake-compiler" 
+  s.add_development_dependency "rake-compiler"
 
-  s.extensions = ["ext/cbloomfilter/extconf.rb"] unless defined? JRUBY_VERSION
+  if RUBY_PLATFORM =~ /java/
+    s.platform = "java"
+  else
+    s.platform    = Gem::Platform::RUBY
+    s.extensions  = ["ext/cbloomfilter/extconf.rb"]
+  end
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
