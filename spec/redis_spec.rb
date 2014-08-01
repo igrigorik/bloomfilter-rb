@@ -3,53 +3,51 @@ require 'helper'
 describe BloomFilter::Redis do
 
   context "use Redis bitstring for storage" do
-    let(:bf) { BloomFilter::Redis.new }
-
     before do
       # clear all redis databases
-      bf.instance_variable_get(:@db).flushall
+      subject.instance_variable_get(:@db).flushall
     end
 
     it "should store data in Redis" do
-      bf.insert(:abcd)
-      bf.insert('test')
-      bf.include?('test').should be_true
-      bf.key?('test').should be_true
+      subject.insert(:abcd)
+      subject.insert('test')
+      expect(subject.include?('test')).to be true
+      expect(subject.key?('test')).to be true
 
-      bf.include?('test', 'test2').should be_false
-      bf.include?('test', 'abcd').should be_true
+      expect(subject.include?('test', 'test2')).to be false
+      expect(subject.include?('test', 'abcd')).to be true
     end
 
     it "should delete keys from Redis" do
-      bf.insert('test')
-      bf.include?('test').should be_true
+      subject.insert('test')
+      expect(subject.include?('test')).to be true
 
-      bf.delete('test')
-      bf.include?('test').should be_false
+      subject.delete('test')
+      expect(subject.include?('test')).to be false
     end
 
     it "should clear Redis filter" do
-      bf.insert('test')
-      bf.include?('test').should be_true
+      subject.insert('test')
+      expect(subject.include?('test')).to be true
 
-      bf.clear
-      bf.include?('test').should be_false
+      subject.clear
+      expect(subject.include?('test')).to be false
     end
 
     it "should output current stats" do
-      bf.clear
-      bf.insert('test')
-      lambda { bf.stats }.should_not raise_error
+      subject.clear
+      subject.insert('test')
+      expect { subject.stats }.not_to raise_error
     end
 
     it "should connect to remote redis server" do
-      lambda { BloomFilter::Redis.new }.should_not raise_error
+      expect { BloomFilter::Redis.new }.not_to raise_error
     end
 
     it "should allow redis client instance to be passed in" do
-      redis_client = mock ::Redis
+      redis_client = double("Redis")
       bf = BloomFilter::Redis.new(:db => redis_client)
-      bf.instance_variable_get(:@db).should be == redis_client
+      expect(bf.instance_variable_get(:@db)).to be redis_client
     end
 
     it "should allow namespaced BloomFilters" do
@@ -57,8 +55,8 @@ describe BloomFilter::Redis do
       bf2 = BloomFilter::Redis.new(:namespace => :b)
 
       bf1.insert('test')
-      bf1.include?('test').should be_true
-      bf2.include?('test').should be_false
+      expect(bf1.include?('test')).to be true
+      expect(bf2.include?('test')).to be false
     end
   end
 end
