@@ -26,8 +26,10 @@ module BloomFilter
 
     def delete(key)
       indexes_for(key).each do |idx|
-        if @db.decr(idx).to_i <= 0
+        count = @db.decr(idx).to_i
+        if count <= 0
           @db.del(idx)
+          @db.setbit(idx, 0) if count < 0
         end
       end
     end
