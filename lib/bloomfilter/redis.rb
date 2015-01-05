@@ -45,11 +45,7 @@ module BloomFilter
     alias :key? :include?
 
     def delete(key)
-      @db.pipelined do
-        indexes_for(key) do |idx|
-          @db.setbit @opts[:namespace], idx, 0
-        end
-      end
+      warn "Deletes are disabled on non-counting filter, see: https://github.com/igrigorik/bloomfilter-rb/issues/37. This method will be deprecated in a future release."
     end
 
     def clear

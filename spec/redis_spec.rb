@@ -18,12 +18,12 @@ describe BloomFilter::Redis do
       expect(subject.include?('test', 'abcd')).to be true
     end
 
-    it "should delete keys from Redis" do
+    it "should not delete keys from Redis" do
       subject.insert('test')
       expect(subject.include?('test')).to be true
 
       subject.delete('test')
-      expect(subject.include?('test')).to be false
+      expect(subject.include?('test')).to be true
     end
 
     it "should clear Redis filter" do
