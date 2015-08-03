@@ -192,17 +192,26 @@ static VALUE bf_set_bits(VALUE self){
     return INT2FIX(count);
 }
 
+static unsigned int key2index(VALUE key, int seed, int m) {
+  VALUE res;
+  int index;
+  unsigned int h;
+
+  if(rb_block_given_p())
+    res = rb_yield_values(2, key, INT2FIX(seed));
+  else
+    rb_raise(rb_eArgError, "a block is required");
+
+  h = FIX2UINT(res);
+  index = (int) (h % (unsigned int) m); 
+  return index;
+}
+
 static VALUE bf_insert(VALUE self, VALUE key) {
-    VALUE skey;
     int index, seed;
-    int i, len, m, k, s;
-    char *ckey;
+    int i, m, k, s;
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
-
-    skey = rb_obj_as_string(key);
-    ckey = StringValuePtr(skey);
-    len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -213,7 +222,7 @@ static VALUE bf_insert(VALUE self, VALUE key) {
         seed = i + s;
 
         /* hash */
-        index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
+        index = key2index(key, seed, m);
 
         /*  set a bit at the index */
         bucket_set(bf, index);
@@ -221,6 +230,7 @@ static VALUE bf_insert(VALUE self, VALUE key) {
 
     return Qnil;
 }
+
 
 static VALUE bf_merge(VALUE self, VALUE other) {
     struct BloomFilter *bf, *target;
@@ -279,15 +289,9 @@ static VALUE bf_or(VALUE self, VALUE other) {
 
 static VALUE bf_delete(VALUE self, VALUE key) {
     int index, seed;
-    int i, len, m, k, s;
-    char *ckey;
-    VALUE skey;
+    int i, m, k, s;
     struct BloomFilter *bf;
     Data_Get_Struct(self, struct BloomFilter, bf);
-
-    skey = rb_obj_as_string(key);
-    ckey = StringValuePtr(skey);
-    len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
     m = bf->m;
     k = bf->k;
@@ -298,7 +302,7 @@ static VALUE bf_delete(VALUE self, VALUE key) {
         seed = i + s;
 
         /* hash */
-        index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
+        index = key2index(key, seed, m);
 
         /*  set a bit at the index */
         bucket_unset(bf, index);
@@ -310,8 +314,7 @@ static VALUE bf_delete(VALUE self, VALUE key) {
 
 static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     int index, seed;
-    int i, len, m, k, s, tests_idx, vlen;
-    char *ckey;
+    int i, m, k, s, tests_idx, vlen;
     VALUE tests, key, skey;
     struct BloomFilter *bf;
 
@@ -321,9 +324,6 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
     vlen = RARRAY_LEN(tests);
     for(tests_idx = 0; tests_idx < vlen; tests_idx++) {
       key = rb_ary_entry(tests, tests_idx);
-      skey = rb_obj_as_string(key);
-      ckey = StringValuePtr(skey);
-      len = (int) (RSTRING_LEN(skey)); /* length of the string in bytes */
 
       m = bf->m;
       k = bf->k;
@@ -334,7 +334,7 @@ static VALUE bf_include(int argc, VALUE* argv, VALUE self) {
           seed = i + s;
 
           /* hash */
-          index = (int) (crc32((unsigned int) (seed), ckey, len) % (unsigned int) (m));
+          index = key2index(key, seed, m);
 
           /* check the bit at the index */
           if (!bucket_check(bf, index)) {
