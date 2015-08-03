@@ -4,7 +4,6 @@
  */
 
 #include "ruby.h"
-#include "crc32.h"
 
 #if !defined(RSTRING_LEN)
 # define RSTRING_LEN(x) (RSTRING(x)->len)
