@@ -81,6 +81,21 @@ int bucket_get(struct BloomFilter *bf, int index) {
     return (c & mask) >> bit_offset;
 }
 
+static unsigned int key2index(VALUE key, int seed, int m) {
+  VALUE res;
+  int index;
+  unsigned int h;
+
+  if (rb_block_given_p())
+    res = rb_yield_values(2, key, INT2FIX(seed));
+  else
+    rb_raise(rb_eArgError, "a block is required");
+
+  h = FIX2UINT(res);
+  index = (int) (h % (unsigned int) m); 
+  return index;
+}
+
 static VALUE bf_s_new(int argc, VALUE *argv, VALUE self) {
     struct BloomFilter *bf;
     VALUE arg1, arg2, arg3, arg4, arg5, obj;
@@ -189,21 +204,6 @@ static VALUE bf_set_bits(VALUE self){
         }
     }
     return INT2FIX(count);
-}
-
-static unsigned int key2index(VALUE key, int seed, int m) {
-  VALUE res;
-  int index;
-  unsigned int h;
-
-  if(rb_block_given_p())
-    res = rb_yield_values(2, key, INT2FIX(seed));
-  else
-    rb_raise(rb_eArgError, "a block is required");
-
-  h = FIX2UINT(res);
-  index = (int) (h % (unsigned int) m); 
-  return index;
 }
 
 static VALUE bf_insert(VALUE self, VALUE key) {
