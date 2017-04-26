@@ -71,7 +71,7 @@ bf.include?('test')     # => false
 
 ***
 
-## Redis-backed counting bloom filter with TTL's
+## Redis-backed counting bloom filter with TTLs
 Uses regular Redis get/set counters to implement a counting filter with optional TTL expiry. Because each "bit" requires its own key in Redis, you do incur a much larger memory overhead.
 
 ```ruby
