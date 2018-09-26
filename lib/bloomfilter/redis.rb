@@ -68,7 +68,7 @@ module BloomFilter
       def indexes_for(key)
         indexes = []
         @opts[:hashes].times do |i|
-          yield Zlib.crc32("#{key}:#{i+@opts[:seed]}") % @opts[:size]
+            yield Zlib.crc32("#{key}:#{i.to_s+@opts[:seed]}") % @opts[:size]
         end
       end
 
