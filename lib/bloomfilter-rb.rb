@@ -1,4 +1,3 @@
-require 'redis'
 require 'zlib'
 
 require 'cbloomfilter'
