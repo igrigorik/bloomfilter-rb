@@ -1,3 +1,5 @@
+require 'zlib'
+
 module BloomFilter
   BloomFilter::ConfigurationMismatch = Class.new(ArgumentError)
   
@@ -22,18 +24,31 @@ module BloomFilter
       @bf = CBloomFilter.new(@opts[:size], @opts[:hashes], @opts[:seed], @opts[:bucket], @opts[:raise])
     end
 
+    def key2index(key, seed)
+      Zlib.crc32(key.to_s, seed)
+    end
+
     def insert(key)
-      @bf.insert(key)
+      @bf.insert(key) do |key, seed|
+        key2index(key, seed)
+      end
     end
     alias :[]= :insert
 
     def include?(*keys)
-      @bf.include?(*keys)
+      @bf.include?(*keys) do |key, seed|
+        key2index(key, seed)
+      end
     end
     alias :key? :include?
     alias :[] :include?
 
-    def delete(key); @bf.delete(key); end
+    def delete(key) 
+      @bf.delete(key) do |key, seed|
+        key2index(key, seed)
+      end
+    end
+
     def clear; @bf.clear; end
     def size; @bf.set_bits; end
     def merge!(o); @bf.merge!(o.bf); end
