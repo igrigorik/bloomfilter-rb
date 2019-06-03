@@ -1,6 +1,6 @@
 require 'zlib'
 
-require 'cbloomfilter'
+require 'cbloomfilter' unless defined? JRUBY_VERSION
 require 'bloomfilter/filter'
 require 'bloomfilter/native'
 require 'bloomfilter/counting_redis'

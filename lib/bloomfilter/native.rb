@@ -5,6 +5,8 @@ module BloomFilter
     attr_reader :bf
     
     def initialize(opts = {})
+      raise NotImplementedError, 'Native bloomfilter not implemented on JRuby' if defined? JRUBY_VERSION
+
       @opts = {
         :size    => 100,
         :hashes  => 4,
