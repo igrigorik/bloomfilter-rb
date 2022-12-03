@@ -18,8 +18,8 @@ module BloomFilter
     end
 
     def insert(key, ttl=nil)
-      @db.pipelined do
-        indexes_for(key) { |idx| @db.setbit @opts[:namespace], idx, 1 }
+      @db.pipelined do |db|
+        indexes_for(key) { |idx| db.setbit @opts[:namespace], idx, 1 }
       end
     end
     alias :[]= :insert
@@ -31,9 +31,9 @@ module BloomFilter
 
         return false if @db.getbit(@opts[:namespace], indexes.shift) == 0
 
-        result = @db.pipelined do
+        result = @db.pipelined do |db|
           indexes.each do |idx|
-            @db.getbit(@opts[:namespace], idx)
+            db.getbit(@opts[:namespace], idx)
           end
         end
 
