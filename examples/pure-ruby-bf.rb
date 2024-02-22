@@ -1,5 +1,5 @@
-require 'bitset' # bitset gem
-require 'zlib'   # from stdlib
+require 'bitset' # gem
+require 'zlib'   # stdlib
 
 class BloomFilter
   attr_reader :bitmap
@@ -51,7 +51,7 @@ class BloomFilter
   def to_s
     format("%i bits (%.1f kB, %i hashes) %i%% full; FPR: %.3f%%",
            @num_bits, @num_bits.to_f / 2**13, @num_hashes,
-           self.percent_full * 100, self.fpr)
+           self.percent_full * 100, self.fpr * 100)
   end
   alias_method(:inspect, :to_s)
 end
@@ -61,7 +61,7 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new
+  bf = BloomFilter.new(num_bits: 2**8, num_hashes: 5)
   num = 0
   last = ''
 
@@ -90,12 +90,13 @@ if __FILE__ == $0
     else
       puts format("%.1f%%\t%s", bf[str] * 100,  str)
     end
+    last = str
   end
 end
 
 
-# two newlines above should break the ingest loop
-# and we can put stuff in the test loop:
+# the two newlines above should break the ingest loop
+# and now we can put stuff in the test loop:
 if false
   puts
   # ingest loop
