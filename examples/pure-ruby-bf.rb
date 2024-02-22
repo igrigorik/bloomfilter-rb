@@ -1,52 +1,103 @@
-#
-# Pure ruby implementation of a Bloom filter, just for kicks
-#
-
-require 'bitset'
-require 'zlib'
+require 'bitset' # bitset gem
+require 'zlib'   # from stdlib
 
 class BloomFilter
+  attr_reader :bitmap
 
-  def initialize(max_entries, num_hashes, seed)
+  # The default values require 8 kilobytes of storage and recognize:
+  # < 4000 strings; FPR 0.1%
+  # < 7000 strings; FPR 1%
+  # >  10k strings; FPR 5%
+  # The false positive rate goes up as more strings are added
+  def initialize(num_bits: 2**16, num_hashes: 5)
+    @num_bits = num_bits
     @num_hashes = num_hashes
-    @size = max_entries.to_i
-    @bitmap = Bitset.new(@size)
-    @__mask = Bitset.new(@size)
-    @seed = seed
+    @bitmap = Bitset.new(@num_bits)
   end
 
-  def insert(key)
-    mask = make_mask(key)
-    @bitmap |= mask
+  # return an array of bit indices representing "on bits"
+  # use ruby's #hash "for free"; successive crc32 beyond that
+  def bits(str)
+    val = 0
+    Array.new(@num_hashes - 1) {
+      # use prior val as the seed for next hash
+      val = Zlib.crc32(str, val)
+      val % @num_bits
+    }.push(str.hash % @num_bits)
   end
 
-  def new?(key)
-    mask = make_mask(key)
-    return ((@bitmap & mask) != mask);
+  def add(str)
+    @bitmap.set *self.bits(str)
+  end
+  alias_method(:<<, :add)
+
+  def include?(str)
+    @bitmap.set? *self.bits(str)
   end
 
-  def make_mask(key)
-    @__mask.clear
-    0.upto(@num_hashes.to_i - 1) do |i|
-      hash = Zlib.crc32(key, i + @seed)
-      @__mask.set(hash % @size, 1)
-    end
-    return @__mask
+  def likelihood(str)
+    self.include?(str) ? 1.0 - self.fpr : 0
   end
+  alias_method(:[], :likelihood)
+
+  def percent_full
+    @bitmap.to_a.count.to_f / @num_bits
+  end
+
+  def fpr
+    self.percent_full**@num_hashes
+  end
+
+  def to_s
+    format("%i bits (%.1f kB, %i hashes) %i%% full; FPR: %.3f%%",
+           @num_bits, @num_bits.to_f / 2**13, @num_hashes,
+           self.percent_full * 100, self.fpr)
+  end
+  alias_method(:inspect, :to_s)
 end
 
-def main
-  bf = BloomFilter.new(1000000, 4, 0)
+if __FILE__ == $0
+  puts "Enter strings into the filter; empty line to display filter status"
+  puts "Two empty lines to quit"
+  puts
+
+  bf = BloomFilter.new
   num = 0
-  while line = ARGF.gets
-    data = line.chop
+  last = ''
 
-    if bf.new?(data)
+  # ingest loop
+  while str = $stdin.gets&.chomp
+    if str.empty?
+      puts bf
+      break if last.empty?
+    else
+      bf << str
       num += 1
-      bf.insert(data)
+    end
+    last = str
+  end
+
+  puts "ingested #{num} strings"
+  puts "test if the filter recognizes strings below:"
+  puts
+
+  # test loop
+  last = ''
+  while str = $stdin.gets&.chomp
+    if str.empty?
+      puts bf
+      break if last.empty?
+    else
+      puts format("%.1f%%\t%s", bf[str] * 100,  str)
     end
   end
-  print "#element = #{num}\n"
 end
 
-main
+
+# two newlines above should break the ingest loop
+# and we can put stuff in the test loop:
+if false
+  puts
+  # ingest loop
+  # test loop
+end
