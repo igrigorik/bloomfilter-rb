@@ -95,9 +95,16 @@ if __FILE__ == $0
 end
 
 
+# Everything below this line is to enable using this source file as input:
+#   cat examples/pure-ruby-bf.rb | ruby examples/pure-ruby-bf.rb
 # the two newlines above should break the ingest loop
 # and now we can put stuff in the test loop:
 if false
+  # nothing in here will execute, but check if we've seen these lines before
+  # 1. puts (yes)
+  # 2. ingest loop comment (yes)
+  # 3. test loop comment (yes)
+  # 4. end (yes)
   puts
   # ingest loop
   # test loop
