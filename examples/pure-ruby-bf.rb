@@ -1,13 +1,43 @@
 require 'bitset' # gem
 require 'zlib'   # stdlib
+require 'digest' # stdlib
 
 class BloomFilter
+  # return an array of bit indices ("on bits") via repeated string hashing
+  # start with the fastest/cheapest algos, up to 8 rounds
+  # beyond that, perform cyclic "hashing" with CRC32
+  def self.hash_bits(str, num_hashes:, num_bits:)
+    val = 0 # for cyclic hashing
+    Array.new(num_hashes) { |i|
+      case i
+      when 0
+        str.hash
+      when 1
+        Zlib.crc32(str)
+      when 2
+        Digest::MD5.hexdigest(str).to_i(16)
+      when 3
+        Digest::SHA1.hexdigest(str).to_i(16)
+      when 4
+        Digest::SHA256.hexdigest(str).to_i(16)
+      when 5
+        Digest::SHA384.hexdigest(str).to_i(16)
+      when 6
+        Digest::SHA512.hexdigest(str).to_i(16)
+      when 7
+        Digest::RMD160.hexdigest(str).to_i(16)
+      else # cyclic hashing with CRC32
+        val = Zlib.crc32(str, val)
+      end % num_bits
+    }
+  end
+
   attr_reader :bitmap
 
   # The default values require 8 kilobytes of storage and recognize:
-  # < 4000 strings; FPR 0.1%
-  # < 7000 strings; FPR 1%
-  # >  10k strings; FPR 5%
+  # < 4000 strings: FPR 0.1%
+  # < 7000 strings: FPR 1%
+  # >  10k strings: FPR 5%
   # The false positive rate goes up as more strings are added
   def initialize(num_bits: 2**16, num_hashes: 5)
     @num_bits = num_bits
@@ -15,24 +45,17 @@ class BloomFilter
     @bitmap = Bitset.new(@num_bits)
   end
 
-  # return an array of bit indices representing "on bits"
-  # use ruby's #hash "for free"; successive crc32 beyond that
-  def bits(str)
-    val = 0
-    Array.new(@num_hashes - 1) {
-      # use prior val as the seed for next hash
-      val = Zlib.crc32(str, val)
-      val % @num_bits
-    }.push(str.hash % @num_bits)
+  def hash_bits(str)
+    self.class.hash_bits(str, num_hashes: @num_hashes, num_bits: @num_bits)
   end
 
   def add(str)
-    @bitmap.set *self.bits(str)
+    @bitmap.set *self.hash_bits(str)
   end
   alias_method(:<<, :add)
 
   def include?(str)
-    @bitmap.set? *self.bits(str)
+    @bitmap.set? *self.hash_bits(str)
   end
 
   def likelihood(str)
@@ -61,7 +84,7 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new(num_bits: 2**8, num_hashes: 5)
+  bf = BloomFilter.new(num_bits: 384, num_hashes: 5)
   num = 0
   last = ''
 
