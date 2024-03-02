@@ -1,71 +1,56 @@
-require 'bitset' # gem
 require 'zlib'   # stdlib
-require 'digest' # stdlib
+require 'bitset' # gem
 
 class BloomFilter
-  # return an array of bit indices ("on bits") via repeated string hashing
-  # start with the fastest/cheapest algos, up to 8 rounds
-  # beyond that, perform cyclic "hashing" with CRC32
-  def self.hash_bits(str, num_hashes:, num_bits:)
-    val = 0 # for cyclic hashing
-    Array.new(num_hashes) { |i|
-      case i
-      when 0 then str.hash
-      when 1 then Zlib.crc32(str)
-      when 2 then Digest::MD5.hexdigest(str).to_i(16)
-      when 3 then Digest::SHA1.hexdigest(str).to_i(16)
-      when 4 then Digest::SHA256.hexdigest(str).to_i(16)
-      when 5 then Digest::SHA384.hexdigest(str).to_i(16)
-      when 6 then Digest::SHA512.hexdigest(str).to_i(16)
-      when 7 then Digest::RMD160.hexdigest(str).to_i(16)
-      else # cyclic hashing with CRC32
-        val = Zlib.crc32(str, val)
-      end % num_bits
-    }
-  end
+  MAX_BITS = 2**32 # CRC32 yields 32-bit values
 
-  attr_reader :bitmap
+  attr_reader :bitsize, :aspects, :bitmap
 
   # The default values require 8 kilobytes of storage and recognize:
-  # < 4000 strings: FPR 0.1%
-  # < 7000 strings: FPR 1%
-  # >  10k strings: FPR 5%
-  # The false positive rate goes up as more strings are added
-  def initialize(num_bits: 2**16, num_hashes: 5)
-    @num_bits = num_bits
-    @num_hashes = num_hashes
-    @bitmap = Bitset.new(@num_bits)
+  # < 7000 strings at 1% False Positive Rate (4k @ 0.1%) (10k @ 5%)
+  # FPR goes up as more strings are added
+  def initialize(bitsize: 2**16, aspects: 5)
+    @bitsize = bitsize
+    raise("bitsize: #{@bitsize}") if @bitsize > MAX_BITS
+    @aspects = aspects
+    @bitmap = Bitset.new(@bitsize)
   end
 
-  def hash_bits(str)
-    self.class.hash_bits(str, num_hashes: @num_hashes, num_bits: @num_bits)
+  # Return an array of bit indices ("on bits") corresponding to
+  # multiple rounds of string hashing (CRC32 is fast and ~fine~)
+  def bits(str)
+    val = 0
+    Array.new(@aspects) { (val = Zlib.crc32(str, val)) % @bitsize }
   end
 
   def add(str)
-    @bitmap.set *self.hash_bits(str)
+    @bitmap.set(*self.bits(str))
   end
   alias_method(:<<, :add)
 
+  # true or false; a `true` result may be a "false positive"
   def include?(str)
-    @bitmap.set? *self.hash_bits(str)
+    @bitmap.set?(*self.bits(str))
   end
 
+  # returns either 0 or a number like 0.95036573
   def likelihood(str)
     self.include?(str) ? 1.0 - self.fpr : 0
   end
   alias_method(:[], :likelihood)
 
+  # relatively expensive; don't test against this in a loop
   def percent_full
-    @bitmap.to_a.count.to_f / @num_bits
+    @bitmap.to_a.count.to_f / @bitsize
   end
 
   def fpr
-    self.percent_full**@num_hashes
+    self.percent_full**@aspects
   end
 
   def to_s
-    format("%i bits (%.1f kB, %i hashes) %i%% full; FPR: %.3f%%",
-           @num_bits, @num_bits.to_f / 2**13, @num_hashes,
+    format("%i bits (%.1f kB, %i aspects) %i%% full; FPR: %.3f%%",
+           @bitsize, @bitsize.to_f / 2**13, @aspects,
            self.percent_full * 100, self.fpr * 100)
   end
   alias_method(:inspect, :to_s)
@@ -76,7 +61,7 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new(num_bits: 512, num_hashes: 5)
+  bf = BloomFilter.new(bitsize: 512, aspects: 5)
   num = 0
   last = ''
 
@@ -103,7 +88,7 @@ if __FILE__ == $0
       puts bf
       break if last.empty?
     else
-      puts format("%.1f%%\t%s", bf[str] * 100,  str)
+      puts format("%04.1f%% %s \t %s", bf[str] * 100, str, bf.bits(str))
     end
     last = str
   end
