@@ -10,22 +10,14 @@ class BloomFilter
     val = 0 # for cyclic hashing
     Array.new(num_hashes) { |i|
       case i
-      when 0
-        str.hash
-      when 1
-        Zlib.crc32(str)
-      when 2
-        Digest::MD5.hexdigest(str).to_i(16)
-      when 3
-        Digest::SHA1.hexdigest(str).to_i(16)
-      when 4
-        Digest::SHA256.hexdigest(str).to_i(16)
-      when 5
-        Digest::SHA384.hexdigest(str).to_i(16)
-      when 6
-        Digest::SHA512.hexdigest(str).to_i(16)
-      when 7
-        Digest::RMD160.hexdigest(str).to_i(16)
+      when 0 then str.hash
+      when 1 then Zlib.crc32(str)
+      when 2 then Digest::MD5.hexdigest(str).to_i(16)
+      when 3 then Digest::SHA1.hexdigest(str).to_i(16)
+      when 4 then Digest::SHA256.hexdigest(str).to_i(16)
+      when 5 then Digest::SHA384.hexdigest(str).to_i(16)
+      when 6 then Digest::SHA512.hexdigest(str).to_i(16)
+      when 7 then Digest::RMD160.hexdigest(str).to_i(16)
       else # cyclic hashing with CRC32
         val = Zlib.crc32(str, val)
       end % num_bits
@@ -84,7 +76,7 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new(num_bits: 384, num_hashes: 5)
+  bf = BloomFilter.new(num_bits: 512, num_hashes: 5)
   num = 0
   last = ''
 
