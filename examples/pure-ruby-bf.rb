@@ -1,36 +1,83 @@
-require 'zlib'   # stdlib
-require 'bitset' # gem
+# stdlib
+require 'rbconfig/sizeof'
+require 'zlib'
+
+class BitSet
+  # in bits, e.g. 64 bit / 32 bit platforms.  SIZEOF returns byte width
+  INT_WIDTH = RbConfig::SIZEOF.fetch('long') * 8
+
+  # return an array of ones and zeroes, padded to INT_WIDTH
+  def self.bits(int)
+    bit_ary = int.digits(2)
+    bit_ary + Array.new(INT_WIDTH - bit_ary.count, 0)
+  end
+
+  attr_reader :storage
+
+  # create an array of integers, default 0
+  # use flip_even_bits to initialize with every even bit set to 1
+  def initialize(num_bits, flip_even_bits: false)
+    init = flip_even_bits ? (2**INT_WIDTH / 3r).to_i : 0
+    @storage = Array.new((num_bits / INT_WIDTH.to_f).ceil, init)
+  end
+
+  # ensure the given bit_indices are set to 1
+  def set(bit_indices)
+    bit_indices.each { |b|
+      slot, val = b.divmod(INT_WIDTH)
+      @storage[slot] |= (1 << val)
+    }
+  end
+
+  # determine if all given bit indices are set to 1
+  def set?(bit_indices)
+    bit_indices.all? { |b|
+      slot, val = b.divmod(INT_WIDTH)
+      @storage[slot][val] != 0
+    }
+  end
+
+  # returns an array of ones and zeroes, padded to INT_WIDTH
+  def bits
+    @storage.flat_map { |i| self.class.bits(i) }
+  end
+
+  # returns an array of bit indices
+  def on_bits
+    self.bits.filter_map.with_index { |b, i| i if b == 1 }
+  end
+end
 
 class BloomFilter
   MAX_BITS = 2**32 # CRC32 yields 32-bit values
 
-  attr_reader :bitsize, :aspects, :bitmap
+  attr_reader :bits, :aspects, :bitmap
 
   # The default values require 8 kilobytes of storage and recognize:
   # < 7000 strings at 1% False Positive Rate (4k @ 0.1%) (10k @ 5%)
   # FPR goes up as more strings are added
-  def initialize(bitsize: 2**16, aspects: 5)
-    @bitsize = bitsize
-    raise("bitsize: #{@bitsize}") if @bitsize > MAX_BITS
+  def initialize(bits: 2**16, aspects: 5)
+    @bits = bits
+    raise("bits: #{@bits}") if @bits > MAX_BITS
     @aspects = aspects
-    @bitmap = Bitset.new(@bitsize)
+    @bitmap = BitSet.new(@bits)
   end
 
   # Return an array of bit indices ("on bits") corresponding to
   # multiple rounds of string hashing (CRC32 is fast and ~fine~)
-  def bits(str)
+  def index(str)
     val = 0
-    Array.new(@aspects) { (val = Zlib.crc32(str, val)) % @bitsize }
+    Array.new(@aspects) { (val = Zlib.crc32(str, val)) % @bits }
   end
 
   def add(str)
-    @bitmap.set(*self.bits(str))
+    @bitmap.set(self.index(str))
   end
   alias_method(:<<, :add)
 
   # true or false; a `true` result may be a "false positive"
   def include?(str)
-    @bitmap.set?(*self.bits(str))
+    @bitmap.set?(self.index(str))
   end
 
   # returns either 0 or a number like 0.95036573
@@ -41,7 +88,7 @@ class BloomFilter
 
   # relatively expensive; don't test against this in a loop
   def percent_full
-    @bitmap.to_a.count.to_f / @bitsize
+    @bitmap.on_bits.count.to_f / @bits
   end
 
   def fpr
@@ -50,7 +97,7 @@ class BloomFilter
 
   def to_s
     format("%i bits (%.1f kB, %i aspects) %i%% full; FPR: %.3f%%",
-           @bitsize, @bitsize.to_f / 2**13, @aspects,
+           @bits, @bits.to_f / 2**13, @aspects,
            self.percent_full * 100, self.fpr * 100)
   end
   alias_method(:inspect, :to_s)
@@ -61,7 +108,7 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new(bitsize: 512, aspects: 5)
+  bf = BloomFilter.new(bits: 512, aspects: 5)
   num = 0
   last = ''
 
@@ -88,7 +135,7 @@ if __FILE__ == $0
       puts bf
       break if last.empty?
     else
-      puts format("%04.1f%% %s \t %s", bf[str] * 100, str, bf.bits(str))
+      puts format("%04.1f%% %s \t %s", bf[str] * 100, str, bf.index(str))
     end
     last = str
   end
