@@ -114,10 +114,10 @@ if __FILE__ == $0
 
   # ingest loop
   while str = $stdin.gets&.chomp
-    if str.empty?
+    if str.empty? # display status; end the loop on consecutive empty lines
       puts bf
       break if last.empty?
-    else
+    else          # ingest the line; update the count
       bf << str
       num += 1
     end
@@ -131,10 +131,10 @@ if __FILE__ == $0
   # test loop
   last = ''
   while str = $stdin.gets&.chomp
-    if str.empty?
+    if str.empty? # as before
       puts bf
       break if last.empty?
-    else
+    else          # show the likelihood for each item and its index
       puts format("%04.1f%% %s \t %s", bf[str] * 100, str, bf.index(str))
     end
     last = str
@@ -148,10 +148,10 @@ end
 # and now we can put stuff in the test loop:
 if false
   # nothing in here will execute, but check if we've seen these lines before
-  # 1. puts (yes)
+  # 1. puts                (yes)
   # 2. ingest loop comment (yes)
-  # 3. test loop comment (yes)
-  # 4. end (yes)
+  # 3. test loop comment   (yes)
+  # 4. end                 (yes)
   puts
   # ingest loop
   # test loop
