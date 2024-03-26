@@ -5,6 +5,7 @@ require 'zlib'
 class BitSet
   # in bits, e.g. 64 bit / 32 bit platforms.  SIZEOF returns byte width
   INT_WIDTH = RbConfig::SIZEOF.fetch('long') * 8
+  EVEN_BYTE = (2**INT_WIDTH / 3r).to_i
 
   # return an array of ones and zeroes, padded to INT_WIDTH
   def self.bits(int)
@@ -17,32 +18,28 @@ class BitSet
   # create an array of integers, default 0
   # use flip_even_bits to initialize with every even bit set to 1
   def initialize(num_bits, flip_even_bits: false)
-    init = flip_even_bits ? (2**INT_WIDTH / 3r).to_i : 0
-    @storage = Array.new((num_bits / INT_WIDTH.to_f).ceil, init)
+    @storage = Array.new((num_bits / INT_WIDTH.to_f).ceil,
+                         flip_even_bits ? EVEN_BYTE : 0)
   end
 
-  # ensure the given bit_indices are set to 1
-  def set(bit_indices)
-    bit_indices.each { |b|
-      slot, val = b.divmod(INT_WIDTH)
-      @storage[slot] |= (1 << val)
-    }
+  # set the bit_index to 1
+  def add(bit_index)
+    slot, val = bit_index.divmod(INT_WIDTH)
+    @storage[slot] |= (1 << val)
   end
 
-  # determine if all given bit indices are set to 1
-  def set?(bit_indices)
-    bit_indices.all? { |b|
-      slot, val = b.divmod(INT_WIDTH)
-      @storage[slot][val] != 0
-    }
+  # is the bit_index set to 1?
+  def include?(bit_index)
+    slot, val = bit_index.divmod(INT_WIDTH)
+    @storage[slot][val] != 0
   end
 
-  # returns an array of ones and zeroes, padded to INT_WIDTH
+  # return an array of ones and zeroes, padded to INT_WIDTH
   def bits
     @storage.flat_map { |i| self.class.bits(i) }
   end
 
-  # returns an array of bit indices
+  # return an array of bit indices
   def on_bits
     self.bits.filter_map.with_index { |b, i| i if b == 1 }
   end
@@ -71,13 +68,13 @@ class BloomFilter
   end
 
   def add(str)
-    @bitmap.set(self.index(str))
+    self.index(str).each { |i| @bitmap.add(i) }
   end
   alias_method(:<<, :add)
 
   # true or false; a `true` result may be a "false positive"
   def include?(str)
-    @bitmap.set?(self.index(str))
+    self.index(str).all? { |i| @bitmap.include?(i) }
   end
 
   # returns either 0 or a number like 0.95036573
