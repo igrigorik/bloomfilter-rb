@@ -1,71 +1,100 @@
-require 'bitset' # gem
-require 'zlib'   # stdlib
-require 'digest' # stdlib
+# stdlib
+require 'rbconfig/sizeof'
+require 'zlib'
+
+class BitSet
+  # in bits, e.g. 64 bit / 32 bit platforms.  SIZEOF returns byte width
+  INT_WIDTH = RbConfig::SIZEOF.fetch('long') * 8
+  EVEN_BYTE = (2**INT_WIDTH / 3r).to_i
+
+  # return an array of ones and zeroes, padded to INT_WIDTH
+  def self.bits(int)
+    bit_ary = int.digits(2)
+    bit_ary + Array.new(INT_WIDTH - bit_ary.count, 0)
+  end
+
+  attr_reader :storage
+
+  # create an array of integers, default 0
+  # use flip_even_bits to initialize with every even bit set to 1
+  def initialize(num_bits, flip_even_bits: false)
+    @storage = Array.new((num_bits / INT_WIDTH.to_f).ceil,
+                         flip_even_bits ? EVEN_BYTE : 0)
+  end
+
+  # set the bit_index to 1
+  def add(bit_index)
+    slot, val = bit_index.divmod(INT_WIDTH)
+    @storage[slot] |= (1 << val)
+  end
+
+  # is the bit_index set to 1?
+  def include?(bit_index)
+    slot, val = bit_index.divmod(INT_WIDTH)
+    @storage[slot][val] != 0
+  end
+
+  # return an array of ones and zeroes, padded to INT_WIDTH
+  def bits
+    @storage.flat_map { |i| self.class.bits(i) }
+  end
+
+  # return an array of bit indices
+  def on_bits
+    self.bits.filter_map.with_index { |b, i| i if b == 1 }
+  end
+end
 
 class BloomFilter
-  # return an array of bit indices ("on bits") via repeated string hashing
-  # start with the fastest/cheapest algos, up to 8 rounds
-  # beyond that, perform cyclic "hashing" with CRC32
-  def self.hash_bits(str, num_hashes:, num_bits:)
-    val = 0 # for cyclic hashing
-    Array.new(num_hashes) { |i|
-      case i
-      when 0 then str.hash
-      when 1 then Zlib.crc32(str)
-      when 2 then Digest::MD5.hexdigest(str).to_i(16)
-      when 3 then Digest::SHA1.hexdigest(str).to_i(16)
-      when 4 then Digest::SHA256.hexdigest(str).to_i(16)
-      when 5 then Digest::SHA384.hexdigest(str).to_i(16)
-      when 6 then Digest::SHA512.hexdigest(str).to_i(16)
-      when 7 then Digest::RMD160.hexdigest(str).to_i(16)
-      else # cyclic hashing with CRC32
-        val = Zlib.crc32(str, val)
-      end % num_bits
-    }
-  end
+  MAX_BITS = 2**32 # CRC32 yields 32-bit values
 
-  attr_reader :bitmap
+  attr_reader :bits, :aspects, :bitmap
 
   # The default values require 8 kilobytes of storage and recognize:
-  # < 4000 strings: FPR 0.1%
-  # < 7000 strings: FPR 1%
-  # >  10k strings: FPR 5%
-  # The false positive rate goes up as more strings are added
-  def initialize(num_bits: 2**16, num_hashes: 5)
-    @num_bits = num_bits
-    @num_hashes = num_hashes
-    @bitmap = Bitset.new(@num_bits)
+  # < 7000 strings at 1% False Positive Rate (4k @ 0.1%) (10k @ 5%)
+  # FPR goes up as more strings are added
+  def initialize(bits: 2**16, aspects: 5)
+    @bits = bits
+    raise("bits: #{@bits}") if @bits > MAX_BITS
+    @aspects = aspects
+    @bitmap = BitSet.new(@bits)
   end
 
-  def hash_bits(str)
-    self.class.hash_bits(str, num_hashes: @num_hashes, num_bits: @num_bits)
+  # Return an array of bit indices ("on bits") corresponding to
+  # multiple rounds of string hashing (CRC32 is fast and ~fine~)
+  def index(str)
+    val = 0
+    Array.new(@aspects) { (val = Zlib.crc32(str, val)) % @bits }
   end
 
   def add(str)
-    @bitmap.set *self.hash_bits(str)
+    self.index(str).each { |i| @bitmap.add(i) }
   end
   alias_method(:<<, :add)
 
+  # true or false; a `true` result may be a "false positive"
   def include?(str)
-    @bitmap.set? *self.hash_bits(str)
+    self.index(str).all? { |i| @bitmap.include?(i) }
   end
 
+  # returns either 0 or a number like 0.95036573
   def likelihood(str)
     self.include?(str) ? 1.0 - self.fpr : 0
   end
   alias_method(:[], :likelihood)
 
+  # relatively expensive; don't test against this in a loop
   def percent_full
-    @bitmap.to_a.count.to_f / @num_bits
+    @bitmap.on_bits.count.to_f / @bits
   end
 
   def fpr
-    self.percent_full**@num_hashes
+    self.percent_full**@aspects
   end
 
   def to_s
-    format("%i bits (%.1f kB, %i hashes) %i%% full; FPR: %.3f%%",
-           @num_bits, @num_bits.to_f / 2**13, @num_hashes,
+    format("%i bits (%.1f kB, %i aspects) %i%% full; FPR: %.3f%%",
+           @bits, @bits.to_f / 2**13, @aspects,
            self.percent_full * 100, self.fpr * 100)
   end
   alias_method(:inspect, :to_s)
@@ -76,16 +105,16 @@ if __FILE__ == $0
   puts "Two empty lines to quit"
   puts
 
-  bf = BloomFilter.new(num_bits: 512, num_hashes: 5)
+  bf = BloomFilter.new(bits: 512, aspects: 5)
   num = 0
   last = ''
 
   # ingest loop
   while str = $stdin.gets&.chomp
-    if str.empty?
+    if str.empty? # display status; end the loop on consecutive empty lines
       puts bf
       break if last.empty?
-    else
+    else          # ingest the line; update the count
       bf << str
       num += 1
     end
@@ -99,11 +128,11 @@ if __FILE__ == $0
   # test loop
   last = ''
   while str = $stdin.gets&.chomp
-    if str.empty?
+    if str.empty? # as before
       puts bf
       break if last.empty?
-    else
-      puts format("%.1f%%\t%s", bf[str] * 100,  str)
+    else          # show the likelihood for each item and its index
+      puts format("%04.1f%% %s \t %s", bf[str] * 100, str, bf.index(str))
     end
     last = str
   end
@@ -116,10 +145,10 @@ end
 # and now we can put stuff in the test loop:
 if false
   # nothing in here will execute, but check if we've seen these lines before
-  # 1. puts (yes)
+  # 1. puts                (yes)
   # 2. ingest loop comment (yes)
-  # 3. test loop comment (yes)
-  # 4. end (yes)
+  # 3. test loop comment   (yes)
+  # 4. end                 (yes)
   puts
   # ingest loop
   # test loop
